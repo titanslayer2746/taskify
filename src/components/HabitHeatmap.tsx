@@ -165,20 +165,20 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
 
   return (
     <>
-      <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-4 sm:p-6 border border-gray-700/30 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div>
             <h3
-              className={`text-2xl font-extrabold bg-gradient-to-r ${habitColor} bg-clip-text text-transparent mb-1 tracking-tight`}
+              className={`text-xl sm:text-2xl font-extrabold bg-gradient-to-r ${habitColor} bg-clip-text text-transparent mb-1 tracking-tight`}
             >
               {formattedName}
             </h3>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-lg">
-              <CalendarCheck className="text-blue-500" size={20} />
-              <span className="text-blue-500 font-medium">
-                {completedDays} days completed
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 bg-blue-500/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
+              <CalendarCheck className="text-blue-500" size={18} />
+              <span className="text-blue-500 text-sm sm:text-base font-medium">
+                {completedDays} days
               </span>
             </div>
             <AnimatePresence mode="wait">
@@ -194,27 +194,27 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
                   mass: 1,
                   delay: 0.2,
                 }}
-                className="flex items-center gap-2 bg-orange-500/10 px-3 py-1.5 rounded-lg"
+                className="flex items-center gap-2 bg-orange-500/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg"
               >
-                <Flame className="text-orange-500" size={20} />
-                <span className="text-orange-500 font-medium">
-                  {streakCount} day streak
+                <Flame className="text-orange-500" size={18} />
+                <span className="text-orange-500 text-sm sm:text-base font-medium">
+                  {streakCount} streak
                 </span>
               </motion.div>
             </AnimatePresence>
             <button
               onClick={handleDelete}
-              className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
+              className="p-1.5 sm:p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
               title="Delete habit"
             >
-              <Trash2 size={20} />
+              <Trash2 size={18} />
             </button>
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3 sm:mb-4">
           <div
-            className="grid gap-[2px] text-xs text-gray-400 mb-2"
+            className="grid gap-[2px] text-[10px] sm:text-xs text-gray-400 mb-2"
             style={{
               gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))`,
             }}
@@ -228,7 +228,7 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
                   {monthLabel ? (
                     <div className="flex flex-col items-center">
                       <span>{monthLabel.name}</span>
-                      <span className="text-[10px] text-gray-500">
+                      <span className="text-[8px] sm:text-[10px] text-gray-500">
                         {monthLabel.year}
                       </span>
                     </div>
@@ -242,82 +242,67 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
         </div>
 
         <div
-          className={`grid gap-[2px] mb-6`}
+          className={`grid gap-[2px] mb-4 sm:mb-6`}
           style={{
             gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))`,
             imageRendering: "crisp-edges",
           }}
         >
-          {Array.from({ length: totalColumns }, (_, colIndex) => (
-            <div key={colIndex} className="grid grid-rows-7 gap-[2px]">
-              {Array.from({ length: 7 }, (_, rowIndex) => {
+          {Array.from({ length: 7 }, (_, rowIndex) => (
+            <React.Fragment key={rowIndex}>
+              {Array.from({ length: totalColumns }, (_, colIndex) => {
                 const dateIndex = colIndex * 7 + rowIndex;
+                if (dateIndex >= dates.length) return null;
+
                 const date = dates[dateIndex];
-
-                if (!date) {
-                  return <div key={rowIndex} className="w-4 h-4" />;
-                }
-
-                const isCompleted = habit.completions[date];
-                const dateObj = new Date(date);
+                const isCompleted = habit.completions[date] || false;
                 const isToday = date === new Date().toISOString().split("T")[0];
-                const isFuture = dateObj > new Date();
-                const isPast = dateObj < new Date() && !isToday;
+                const isFuture = new Date(date) > new Date();
+                const isPast = new Date(date) < new Date();
 
                 return (
                   <button
-                    key={rowIndex}
-                    onClick={() =>
-                      !isFuture && !isPast && onToggleCompletion(habit.id, date)
-                    }
-                    disabled={isFuture || isPast}
-                    className={`
-                      w-4 h-4 rounded-sm transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500/50 
-                      ${
-                        isCompleted
-                          ? "bg-green-400 hover:bg-green-300"
-                          : isFuture
-                          ? "bg-gray-800 cursor-not-allowed opacity-50"
-                          : isPast
-                          ? "bg-gray-700 cursor-not-allowed"
-                          : "bg-gray-700 hover:bg-gray-600"
+                    key={date}
+                    onClick={() => {
+                      if (!isFuture) {
+                        onToggleCompletion(habit.id, date);
                       }
-                      ${isToday ? "ring-2 ring-purple-400" : ""}
-                      ${isFuture || isPast ? "hover:scale-100" : ""}
-                    `}
-                    style={{
-                      imageRendering: "crisp-edges",
-                      shapeRendering: "crispEdges",
                     }}
-                    title={`${dateObj.toLocaleDateString()} - ${
-                      isFuture
-                        ? "Future date"
-                        : isPast
-                        ? isCompleted
-                          ? "Completed (Past date)"
-                          : "Not completed (Past date)"
-                        : isCompleted
-                        ? "Completed"
-                        : "Not completed"
+                    className={`relative group w-full aspect-square rounded-sm transition-all duration-200 ${
+                      isCompleted
+                        ? "bg-green-500/80 hover:bg-green-500"
+                        : isToday
+                        ? "bg-blue-500/20 hover:bg-blue-500/30"
+                        : isFuture
+                        ? "bg-gray-800/50 cursor-not-allowed"
+                        : "bg-gray-800/50 hover:bg-gray-700/50"
                     }`}
-                  />
+                    disabled={isFuture}
+                    title={`${date} - ${
+                      isCompleted ? "Completed" : "Not completed"
+                    }`}
+                  >
+                    <div
+                      className={`absolute inset-0 flex items-center justify-center text-[8px] sm:text-[10px] font-medium ${
+                        isCompleted ? "text-white" : "text-gray-400"
+                      } opacity-0 group-hover:opacity-100 transition-opacity duration-200`}
+                    >
+                      {new Date(date).getDate()}
+                    </div>
+                  </button>
                 );
               })}
-            </div>
+            </React.Fragment>
           ))}
         </div>
 
         <div className="flex justify-center">
           <button
             onClick={handleMarkToday}
-            className="group relative px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 focus:outline-none focus:ring-4 focus:ring-green-500/50"
-            title="Mark today as completed"
+            className="flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 px-3 py-1.5 rounded-lg transition-all duration-200 text-sm sm:text-base"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative flex items-center gap-2">
-              <CheckCircle size={20} />
-              Mark Today
-            </div>
+            <CheckCircle size={18} />
+            <span>Mark Today</span>
           </button>
         </div>
       </div>
@@ -325,42 +310,30 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
       {/* Delete Confirmation Dialog */}
       <AnimatePresence>
         {isDeleteDialogOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700/30 w-full max-w-md mx-4"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Delete Habit</h3>
-                <button
-                  onClick={() => setIsDeleteDialogOpen(false)}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full border border-gray-700/30">
+              <h3 className="text-xl font-bold text-white mb-4">
+                Delete Habit
+              </h3>
               <p className="text-gray-300 mb-6">
-                Are you sure you want to delete "{formattedName}"? This action
-                cannot be undone.
+                Are you sure you want to delete this habit? This action cannot
+                be undone.
               </p>
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setIsDeleteDialogOpen(false)}
-                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all duration-200 flex items-center gap-2"
+                  className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
                 >
-                  <Trash2 size={18} />
                   Delete
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
