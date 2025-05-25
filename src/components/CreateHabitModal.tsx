@@ -1,0 +1,96 @@
+import React, { useState } from "react";
+import { X } from "lucide-react";
+
+interface CreateHabitModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (name: string) => void;
+}
+
+const CreateHabitModal: React.FC<CreateHabitModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+}) => {
+  const [habitName, setHabitName] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (habitName.trim()) {
+      onConfirm(habitName.trim());
+      setHabitName("");
+    }
+  };
+
+  const handleClose = () => {
+    setHabitName("");
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        onClick={handleClose}
+      />
+
+      <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 mx-4 w-full max-w-md shadow-2xl border border-gray-700/50 animate-scale-in">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-violet-900/20 rounded-2xl"></div>
+
+        <div className="relative">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">Create New Habit</h2>
+            <button
+              onClick={handleClose}
+              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label
+                htmlFor="habitName"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
+                Habit Name
+              </label>
+              <input
+                id="habitName"
+                type="text"
+                value={habitName}
+                onChange={(e) => setHabitName(e.target.value)}
+                placeholder="e.g., Exercise, Read, Meditate"
+                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                maxLength={50}
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-6 py-3 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!habitName.trim()}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                Create Habit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateHabitModal;
