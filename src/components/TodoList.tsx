@@ -1,0 +1,517 @@
+import React, { useState, useMemo } from "react";
+import {
+  Trash2,
+  CheckCircle,
+  Circle,
+  Plus,
+  X,
+  Calendar,
+  Clock,
+  Star,
+  MoreVertical,
+  Edit3,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface Todo {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  priority: "low" | "medium" | "high";
+  dueDate?: string;
+  createdAt: string;
+  category?: string;
+}
+
+interface TodoListProps {
+  todos: Todo[];
+  onToggleTodo: (todoId: string) => void;
+  onDeleteTodo: (todoId: string) => void;
+  onEditTodo: (todoId: string, updates: Partial<Todo>) => void;
+  onCreateTodo: (todo: Omit<Todo, "id" | "createdAt">) => void;
+}
+
+const TodoList: React.FC<TodoListProps> = ({
+  todos,
+  onToggleTodo,
+  onDeleteTodo,
+  onEditTodo,
+  onCreateTodo,
+}) => {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+  const [sortBy, setSortBy] = useState<"priority" | "dueDate" | "createdAt">(
+    "priority"
+  );
+
+  const filteredTodos = useMemo(() => {
+    let filtered = todos;
+
+    // Apply filter
+    switch (filter) {
+      case "active":
+        filtered = todos.filter((todo) => !todo.completed);
+        break;
+      case "completed":
+        filtered = todos.filter((todo) => todo.completed);
+        break;
+      default:
+        filtered = todos;
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "priority":
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          return priorityOrder[b.priority] - priorityOrder[a.priority];
+        case "dueDate":
+          if (!a.dueDate && !b.dueDate) return 0;
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        case "createdAt":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [todos, filter, sortBy]);
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "from-red-500 to-pink-500";
+      case "medium":
+        return "from-yellow-500 to-orange-500";
+      case "low":
+        return "from-green-500 to-emerald-500";
+      default:
+        return "from-gray-500 to-gray-600";
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "🔥";
+      case "medium":
+        return "⚡";
+      case "low":
+        return "🌱";
+      default:
+        return "📝";
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return "Tomorrow";
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  const isOverdue = (dueDate: string) => {
+    return (
+      new Date(dueDate) < new Date() &&
+      new Date(dueDate).toDateString() !== new Date().toDateString()
+    );
+  };
+
+  const completedCount = todos.filter((todo) => todo.completed).length;
+  const totalCount = todos.length;
+
+  return (
+    <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-4 sm:p-6 border border-gray-700/30 backdrop-blur-sm">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-1 tracking-tight">
+            TODO LIST
+          </h3>
+          <p className="text-gray-400 text-sm">
+            {completedCount} of {totalCount} completed
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Progress indicator */}
+          <div className="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-lg">
+            <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300"
+                style={{
+                  width: `${
+                    totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+                  }%`,
+                }}
+              />
+            </div>
+            <span className="text-blue-500 font-medium text-sm">
+              {totalCount > 0
+                ? Math.round((completedCount / totalCount) * 100)
+                : 0}
+              %
+            </span>
+          </div>
+
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="group relative px-4 py-2 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-500/50"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative flex items-center gap-2">
+              <Plus size={18} />
+              Add Todo
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Filters and Sorting */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="flex items-center gap-2 bg-gray-800/50 rounded-lg p-1">
+          {(["all", "active", "completed"] as const).map((filterOption) => (
+            <button
+              key={filterOption}
+              onClick={() => setFilter(filterOption)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                filter === filterOption
+                  ? "bg-blue-500/20 text-blue-400"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+            >
+              {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as any)}
+          className="px-3 py-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="priority">Sort by Priority</option>
+          <option value="dueDate">Sort by Due Date</option>
+          <option value="createdAt">Sort by Created</option>
+        </select>
+      </div>
+
+      {/* Todo List */}
+      <div className="space-y-3">
+        <AnimatePresence mode="popLayout">
+          {filteredTodos.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center py-12 text-gray-500"
+            >
+              <div className="text-6xl mb-4">📝</div>
+              <p className="text-lg font-medium mb-2">
+                {filter === "all" ? "No todos yet" : `No ${filter} todos`}
+              </p>
+              <p className="text-sm">
+                {filter === "all"
+                  ? "Create your first todo to get started!"
+                  : `All todos are ${
+                      filter === "active" ? "completed" : "pending"
+                    }`}
+              </p>
+            </motion.div>
+          ) : (
+            filteredTodos.map((todo) => (
+              <motion.div
+                key={todo.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className={`group relative bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl p-4 border transition-all duration-300 hover:scale-[1.02] ${
+                  todo.completed
+                    ? "border-green-500/30 opacity-75"
+                    : "border-gray-700/30 hover:border-gray-600/50"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {/* Checkbox */}
+                  <button
+                    onClick={() => onToggleTodo(todo.id)}
+                    className={`flex-shrink-0 mt-1 p-1 rounded-lg transition-all duration-200 ${
+                      todo.completed
+                        ? "text-green-400 hover:text-green-300"
+                        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                    }`}
+                  >
+                    {todo.completed ? (
+                      <CheckCircle size={20} />
+                    ) : (
+                      <Circle size={20} />
+                    )}
+                  </button>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h4
+                          className={`font-medium text-sm sm:text-base transition-all duration-200 ${
+                            todo.completed
+                              ? "line-through text-gray-500"
+                              : "text-white"
+                          }`}
+                        >
+                          {todo.title}
+                        </h4>
+                        {todo.description && (
+                          <p
+                            className={`text-sm mt-1 transition-all duration-200 ${
+                              todo.completed
+                                ? "line-through text-gray-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {todo.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Priority Badge */}
+                      <div
+                        className={`flex-shrink-0 px-2 py-1 rounded-lg text-xs font-medium bg-gradient-to-r ${getPriorityColor(
+                          todo.priority
+                        )} bg-clip-text text-transparent`}
+                      >
+                        {getPriorityIcon(todo.priority)} {todo.priority}
+                      </div>
+                    </div>
+
+                    {/* Meta Information */}
+                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                      {todo.dueDate && (
+                        <div
+                          className={`flex items-center gap-1 ${
+                            isOverdue(todo.dueDate) && !todo.completed
+                              ? "text-red-400"
+                              : ""
+                          }`}
+                        >
+                          <Calendar size={12} />
+                          <span>
+                            {isOverdue(todo.dueDate) && !todo.completed
+                              ? "Overdue: "
+                              : ""}
+                            {formatDate(todo.dueDate)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Clock size={12} />
+                        <span>{formatDate(todo.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() =>
+                        onEditTodo(todo.id, { completed: !todo.completed })
+                      }
+                      className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                      title="Edit todo"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button
+                      onClick={() => onDeleteTodo(todo.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                      title="Delete todo"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Create Todo Modal */}
+      <CreateTodoModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onConfirm={onCreateTodo}
+      />
+    </div>
+  );
+};
+
+// Create Todo Modal Component
+interface CreateTodoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (todo: Omit<Todo, "id" | "createdAt">) => void;
+}
+
+const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+}) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [dueDate, setDueDate] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim()) {
+      onConfirm({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        completed: false,
+        priority,
+        dueDate: dueDate || undefined,
+        category: undefined,
+      });
+      setTitle("");
+      setDescription("");
+      setPriority("medium");
+      setDueDate("");
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setTitle("");
+    setDescription("");
+    setPriority("medium");
+    setDueDate("");
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        onClick={handleClose}
+      />
+
+      <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 sm:p-8 mx-4 w-full max-w-md shadow-2xl border border-gray-700/50 animate-scale-in">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-cyan-900/20 rounded-2xl"></div>
+
+        <div className="relative">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">
+              Create New Todo
+            </h2>
+            <button
+              onClick={handleClose}
+              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                Title *
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter todo title..."
+                className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                maxLength={100}
+                autoFocus
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter description (optional)..."
+                rows={3}
+                className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                maxLength={500}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                  Priority
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!title.trim()}
+                className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Create Todo
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TodoList;
