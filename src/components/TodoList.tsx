@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Trash2,
   CheckCircle,
@@ -10,6 +10,7 @@ import {
   Star,
   MoreVertical,
   Edit3,
+  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,6 +45,38 @@ const TodoList: React.FC<TodoListProps> = ({
   const [sortBy, setSortBy] = useState<"priority" | "dueDate" | "createdAt">(
     "priority"
   );
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const sortOptions = [
+    { value: "priority", label: "Sort by Priority", icon: "🔥" },
+    { value: "dueDate", label: "Sort by Due Date", icon: "📅" },
+    { value: "createdAt", label: "Sort by Created", icon: "🕒" },
+  ];
+
+  const getCurrentSortLabel = () => {
+    return (
+      sortOptions.find((option) => option.value === sortBy)?.label ||
+      "Sort by Priority"
+    );
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsSortDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const filteredTodos = useMemo(() => {
     let filtered = todos;
@@ -199,15 +232,58 @@ const TodoList: React.FC<TodoListProps> = ({
           ))}
         </div>
 
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
-          className="px-3 py-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="priority">Sort by Priority</option>
-          <option value="dueDate">Sort by Due Date</option>
-          <option value="createdAt">Sort by Created</option>
-        </select>
+        {/* Custom Sort Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 hover:border-gray-600/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-sm hover:shadow-md"
+          >
+            <span className="font-medium">{getCurrentSortLabel()}</span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform duration-200 ${
+                isSortDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          <AnimatePresence>
+            {isSortDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="absolute top-full left-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-2xl z-50 overflow-hidden"
+              >
+                <div className="py-1">
+                  {sortOptions.map((option, index) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSortBy(option.value as any);
+                        setIsSortDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                        sortBy === option.value
+                          ? "bg-blue-500/20 text-blue-400 border-r-2 border-blue-500"
+                          : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                      } ${index === 0 ? "rounded-t-xl" : ""} ${
+                        index === sortOptions.length - 1 ? "rounded-b-xl" : ""
+                      }`}
+                    >
+                      <span className="text-lg">{option.icon}</span>
+                      <span className="flex-1 text-left">{option.label}</span>
+                      {sortBy === option.value && (
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Todo List */}
@@ -378,6 +454,53 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [dueDate, setDueDate] = useState("");
+  const [isPriorityDropdownOpen, setIsPriorityDropdownOpen] = useState(false);
+  const priorityDropdownRef = useRef<HTMLDivElement>(null);
+
+  const priorityOptions = [
+    {
+      value: "low",
+      label: "Low",
+      icon: "🌱",
+      color: "from-green-500 to-emerald-500",
+    },
+    {
+      value: "medium",
+      label: "Medium",
+      icon: "⚡",
+      color: "from-yellow-500 to-orange-500",
+    },
+    {
+      value: "high",
+      label: "High",
+      icon: "🔥",
+      color: "from-red-500 to-pink-500",
+    },
+  ];
+
+  const getCurrentPriorityLabel = () => {
+    return (
+      priorityOptions.find((option) => option.value === priority)?.label ||
+      "Medium"
+    );
+  };
+
+  // Close priority dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        priorityDropdownRef.current &&
+        !priorityDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsPriorityDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -441,7 +564,7 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter todo title..."
-                className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-gray-700/50 hover:border-gray-600/50 shadow-sm focus:shadow-md"
                 maxLength={100}
                 autoFocus
                 required
@@ -457,7 +580,7 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter description (optional)..."
                 rows={3}
-                className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-gray-700/50 hover:border-gray-600/50 shadow-sm focus:shadow-md resize-none"
                 maxLength={500}
               />
             </div>
@@ -467,15 +590,66 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
                 <label className="block text-sm sm:text-base font-medium text-gray-300 mb-2">
                   Priority
                 </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
+                <div className="relative" ref={priorityDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsPriorityDropdownOpen(!isPriorityDropdownOpen);
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white hover:bg-gray-700/50 hover:border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                    <span className="font-medium">
+                      {getCurrentPriorityLabel()}
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform duration-200 ${
+                        isPriorityDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {isPriorityDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        className="absolute top-full left-0 mt-2 w-full bg-gray-800/95 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-2xl z-50 overflow-hidden"
+                      >
+                        <div className="py-1">
+                          {priorityOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setPriority(option.value as any);
+                                setIsPriorityDropdownOpen(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                                priority === option.value
+                                  ? "bg-blue-500/20 text-blue-400 border-r-2 border-blue-500"
+                                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                              }`}
+                            >
+                              <span className="text-lg">{option.icon}</span>
+                              <span className="flex-1 text-left">
+                                {option.label}
+                              </span>
+                              {priority === option.value && (
+                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               <div>
@@ -486,7 +660,7 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 hover:bg-gray-700/50 hover:border-gray-600/50 shadow-sm focus:shadow-md"
                 />
               </div>
             </div>

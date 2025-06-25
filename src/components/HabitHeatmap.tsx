@@ -214,7 +214,7 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
 
         <div className="mb-4">
           <div
-            className="grid gap-[2px] text-xs text-gray-400 mb-2"
+            className="grid gap-[1px] sm:gap-[2px] text-xs text-gray-400 mb-2"
             style={{
               gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))`,
             }}
@@ -227,8 +227,10 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
                 <div key={colIndex} className="text-center">
                   {monthLabel ? (
                     <div className="flex flex-col items-center">
-                      <span>{monthLabel.name}</span>
-                      <span className="text-[10px] text-gray-500">
+                      <span className="text-[10px] sm:text-xs">
+                        {monthLabel.name}
+                      </span>
+                      <span className="text-[8px] sm:text-[10px] text-gray-500">
                         {monthLabel.year}
                       </span>
                     </div>
@@ -242,20 +244,28 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
         </div>
 
         <div
-          className={`grid gap-[2px] mb-6`}
+          className={`grid gap-[1px] sm:gap-[2px] mb-6`}
           style={{
             gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))`,
             imageRendering: "crisp-edges",
           }}
         >
           {Array.from({ length: totalColumns }, (_, colIndex) => (
-            <div key={colIndex} className="grid grid-rows-7 gap-[2px]">
+            <div
+              key={colIndex}
+              className="grid grid-rows-7 gap-[1px] sm:gap-[2px]"
+            >
               {Array.from({ length: 7 }, (_, rowIndex) => {
                 const dateIndex = colIndex * 7 + rowIndex;
                 const date = dates[dateIndex];
 
                 if (!date) {
-                  return <div key={rowIndex} className="w-4 h-4" />;
+                  return (
+                    <div
+                      key={rowIndex}
+                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4"
+                    />
+                  );
                 }
 
                 const isCompleted = habit.completions[date];
@@ -272,7 +282,7 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
                     }
                     disabled={isFuture || isPast}
                     className={`
-                w-4 h-4 rounded-sm transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500/50 
+                w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 rounded-[1px] sm:rounded-sm transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-purple-500/50 
                       ${
                         isCompleted
                           ? "bg-green-400 hover:bg-green-300"
@@ -282,7 +292,7 @@ const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
                           ? "bg-gray-700 cursor-not-allowed"
                           : "bg-gray-700 hover:bg-gray-600"
                       }
-                      ${isToday ? "ring-2 ring-purple-400" : ""}
+                      ${isToday ? "sm:ring-[1px] ring-purple-400" : ""}
                       ${isFuture || isPast ? "hover:scale-100" : ""}
               `}
                     style={{
