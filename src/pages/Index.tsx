@@ -14,6 +14,8 @@ import {
   Play,
   Star,
   Wallet,
+  BookOpen,
+  Heart,
 } from "lucide-react";
 
 const Index = () => {
@@ -49,6 +51,22 @@ const Index = () => {
         "Track your income, expenses, and build better financial habits with detailed analytics and smart categorization.",
       color: "from-amber-500 to-orange-500",
       route: "/finance-tracker",
+    },
+    {
+      icon: <BookOpen className="w-8 h-8" />,
+      title: "Journal",
+      description:
+        "Capture your thoughts, ideas, and memories in a beautiful journal. Write, reflect, and grow with every entry.",
+      color: "from-yellow-500 to-amber-500",
+      route: "/journal",
+    },
+    {
+      icon: <Heart className="w-8 h-8" />,
+      title: "Health & Wellness",
+      description:
+        "Create personalized workout and diet plans, track your fitness journey, and maintain daily health notes for continuous improvement.",
+      color: "from-red-500 to-pink-500",
+      route: "/health",
     },
   ];
 
@@ -159,7 +177,7 @@ const Index = () => {
       <div className="relative">
         {/* Background Effects */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-pink-500/10"
+          className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
@@ -170,7 +188,7 @@ const Index = () => {
           animate="animate"
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-72 h-72 bg-pink-500/20 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl"
           variants={floatingVariants}
           animate="animate"
           transition={{ delay: 1.5 }}
@@ -192,7 +210,7 @@ const Index = () => {
             </motion.div>
 
             <motion.h1
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-purple-400 via-violet-400 to-pink-400 bg-clip-text text-transparent mb-6 tracking-tight leading-tight"
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent mb-6 tracking-tight leading-tight"
               variants={itemVariants}
             >
               Taskify
@@ -263,14 +281,14 @@ const Index = () => {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               Everything you need to
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
                 {" "}
                 stay productive
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Three powerful tools working together to help you achieve your
-              goals and build better habits.
+              Six powerful tools working together to help you achieve your goals
+              and build better habits.
             </p>
           </motion.div>
 
@@ -328,7 +346,7 @@ const Index = () => {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               Why choose
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
                 {" "}
                 Taskify?
               </span>
@@ -355,7 +373,7 @@ const Index = () => {
                 transition={{ duration: 0.3 }}
               >
                 <motion.div
-                  className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300"
+                  className="w-16 h-16 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300"
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
                 >
@@ -383,7 +401,7 @@ const Index = () => {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               Simple, transparent
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
                 {" "}
                 pricing
               </span>
@@ -472,7 +490,7 @@ const Index = () => {
 
               {/* Pro Plan */}
               <motion.div
-                className="relative bg-gradient-to-br from-purple-800/30 to-pink-800/30 rounded-2xl p-8 border border-purple-500/30 backdrop-blur-sm"
+                className="relative bg-gradient-to-br from-purple-800/30 via-blue-800/30 to-emerald-800/30 rounded-2xl p-8 border border-purple-500/30 backdrop-blur-sm"
                 whileHover={{ y: -10 }}
                 transition={{ duration: 0.3 }}
               >
@@ -482,14 +500,14 @@ const Index = () => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5, duration: 0.6 }}
                 >
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 text-white px-4 py-1 rounded-full text-sm font-medium">
                     Most Popular
                   </div>
                 </motion.div>
 
                 <div className="text-center mb-8">
                   <motion.div
-                    className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
+                    className="w-16 h-16 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
@@ -545,7 +563,7 @@ const Index = () => {
                 </ul>
 
                 <motion.button
-                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -581,7 +599,7 @@ const Index = () => {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Ready to transform your
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
                 {" "}
                 productivity?
               </span>
@@ -596,9 +614,9 @@ const Index = () => {
             >
               <Link
                 to="/habits"
-                className="group relative inline-flex px-8 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
+                className="group relative inline-flex px-8 py-4 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative flex items-center gap-2">
                   <Target size={24} />
                   Start Your Journey
@@ -623,7 +641,7 @@ const Index = () => {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent mb-4">
               Taskify
             </h3>
             <p className="text-gray-400">

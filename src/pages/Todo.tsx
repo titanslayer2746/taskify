@@ -74,15 +74,6 @@ const Todo = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4 tracking-tight leading-tight py-2">
-            Todo List
-          </h1>
-          <p className="text-gray-400 text-base sm:text-lg">
-            Organize tasks, set priorities, boost productivity
-          </p>
-        </div>
-
         <TodoList
           todos={todos}
           onToggleTodo={toggleTodo}

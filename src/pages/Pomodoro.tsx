@@ -19,15 +19,6 @@ const Pomodoro = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="text-center mb-4 sm:mb-6 lg:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-orange-400 via-red-400 to-orange-600 bg-clip-text text-transparent mb-2 sm:mb-3 tracking-tight leading-tight py-1">
-            Pomodoro Timer
-          </h1>
-          <p className="text-gray-400 text-sm sm:text-base lg:text-lg px-2">
-            Stay focused, take breaks, boost productivity
-          </p>
-        </div>
-
         {/* Start Timer Button */}
         {!isTimerOpen && (
           <div className="flex flex-col items-center justify-center min-h-[40vh] sm:min-h-[50vh]">

@@ -123,11 +123,11 @@ const FinanceCard: React.FC<FinanceCardProps> = ({
         )}
 
         {entry.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 sm:gap-2 gap-1.5">
+          <div className="flex flex-wrap sm:gap-2 gap-1.5">
             {entry.tags.map((tag, index) => (
               <span
                 key={index}
-                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-sm sm:text-sm text-xs ${tagClass}`}
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border sm:text-sm text-xs ${tagClass}`}
               >
                 #{tag}
               </span>
@@ -197,11 +197,11 @@ const FinanceCard: React.FC<FinanceCardProps> = ({
         )}
 
         {entry.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 sm:gap-2 gap-1.5">
+          <div className="flex flex-wrap sm:gap-2 gap-1.5">
             {entry.tags.map((tag, index) => (
               <span
                 key={index}
-                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-sm sm:text-sm text-xs ${tagClass}`}
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border sm:text-sm text-xs ${tagClass}`}
               >
                 #{tag}
               </span>

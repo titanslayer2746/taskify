@@ -96,9 +96,10 @@ const TodoList: React.FC<TodoListProps> = ({
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case "priority":
+        case "priority": {
           const priorityOrder = { high: 3, medium: 2, low: 1 };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
+        }
         case "dueDate":
           if (!a.dueDate && !b.dueDate) return 0;
           if (!a.dueDate) return 1;
@@ -261,7 +262,9 @@ const TodoList: React.FC<TodoListProps> = ({
                     <button
                       key={option.value}
                       onClick={() => {
-                        setSortBy(option.value as any);
+                        setSortBy(
+                          option.value as "priority" | "dueDate" | "createdAt"
+                        );
                         setIsSortDropdownOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
@@ -627,7 +630,9 @@ const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setPriority(option.value as any);
+                                setPriority(
+                                  option.value as "low" | "medium" | "high"
+                                );
                                 setIsPriorityDropdownOpen(false);
                               }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
