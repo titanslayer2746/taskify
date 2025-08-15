@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import WorkoutPlanModal from "../components/WorkoutPlanModal";
 import DietPlanModal from "../components/DietPlanModal";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 import {
   Dumbbell,
   Utensils,
@@ -80,6 +81,15 @@ const Health = () => {
   const [editingWorkoutPlan, setEditingWorkoutPlan] =
     useState<WorkoutPlan | null>(null);
   const [editingDietPlan, setEditingDietPlan] = useState<DietPlan | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    planId: string | null;
+    planName: string;
+  }>({
+    isOpen: false,
+    planId: null,
+    planName: "",
+  });
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -175,8 +185,25 @@ const Health = () => {
   };
 
   const handleDeleteWorkoutPlan = (planId: string) => {
-    if (confirm("Are you sure you want to delete this workout plan?")) {
-      setWorkoutPlans(workoutPlans.filter((p) => p.id !== planId));
+    setWorkoutPlans(workoutPlans.filter((p) => p.id !== planId));
+  };
+
+  const handleDeleteClick = (planId: string, planName: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      planId,
+      planName,
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.planId) {
+      handleDeleteWorkoutPlan(deleteConfirmation.planId);
+      setDeleteConfirmation({
+        isOpen: false,
+        planId: null,
+        planName: "",
+      });
     }
   };
 
@@ -212,6 +239,24 @@ const Health = () => {
   const currentWorkoutPlan = id ? workoutPlans.find((p) => p.id === id) : null;
   const currentDietPlan = id ? dietPlans.find((p) => p.id === id) : null;
 
+  // Scroll to today's workout plan when viewing a specific plan
+  useEffect(() => {
+    if (currentWorkoutPlan) {
+      const today = new Date()
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase();
+      const todayElement = document.getElementById(`workout-day-${today}`);
+      if (todayElement) {
+        setTimeout(() => {
+          todayElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }, 500); // Small delay to ensure DOM is ready
+      }
+    }
+  }, [currentWorkoutPlan]);
+
   if (currentWorkoutPlan) {
     // Ensure backward compatibility for existing plans without weeklySchedule
     const planWithSchedule = {
@@ -226,6 +271,20 @@ const Health = () => {
         saturday: [],
       },
     };
+
+    // Get today's day name for scrolling
+    const today = new Date()
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const todayIndex = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ].indexOf(today);
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -267,16 +326,42 @@ const Health = () => {
                       )
                       .filter(Boolean);
 
+                    // Get today's day name
+                    const today = new Date()
+                      .toLocaleDateString("en-US", { weekday: "long" })
+                      .toLowerCase();
+                    const isToday = day === today;
+
                     return (
                       <div
                         key={day}
-                        className="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30"
+                        id={`workout-day-${day}`}
+                        className={`rounded-lg p-4 border transition-all duration-300 ${
+                          isToday
+                            ? "bg-gradient-to-br from-pink-500/20 to-red-500/20 border-pink-500/40 shadow-lg shadow-pink-500/10"
+                            : "bg-gray-700/30 border-gray-600/30"
+                        }`}
                       >
                         <div className="flex justify-between items-center mb-3">
-                          <h3 className="text-lg font-semibold capitalize">
-                            {day}
-                          </h3>
-                          <span className="text-gray-400">
+                          <div className="flex items-center gap-2">
+                            <h3
+                              className={`text-lg font-semibold capitalize ${
+                                isToday ? "text-pink-400" : "text-white"
+                              }`}
+                            >
+                              {day}
+                            </h3>
+                            {isToday && (
+                              <span className="px-2 py-1 text-xs bg-pink-500/20 text-pink-300 rounded-full border border-pink-500/30">
+                                Today
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className={`${
+                              isToday ? "text-pink-300" : "text-gray-400"
+                            }`}
+                          >
                             {dayExercises.length}{" "}
                             {dayExercises.length === 1
                               ? "exercise"
@@ -341,22 +426,6 @@ const Health = () => {
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEditWorkoutPlan(currentWorkoutPlan)}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
-                >
-                  <Edit size={16} className="inline mr-2" />
-                  Edit Plan
-                </button>
-                <button
-                  onClick={() => handleDeleteWorkoutPlan(currentWorkoutPlan.id)}
-                  className="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-lg font-medium transition-all duration-300 hover:bg-red-600/30 hover:border-red-500/50"
-                >
-                  <Trash2 size={16} />
-                </button>
               </div>
             </div>
           </div>
@@ -680,6 +749,14 @@ const Health = () => {
                           >
                             <Edit size={16} />
                           </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteClick(plan.id, plan.name)
+                            }
+                            className="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-lg font-medium transition-all duration-300 hover:bg-red-600/30 hover:border-red-500/50"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     </motion.div>
@@ -797,6 +874,24 @@ const Health = () => {
         }}
         onSave={handleSaveDietPlan}
         plan={editingDietPlan}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            planId: null,
+            planName: "",
+          })
+        }
+        onConfirm={handleConfirmDelete}
+        title="Delete Workout Plan"
+        message={`Are you sure you want to delete "${deleteConfirmation.planName}"? This action cannot be undone.`}
+        confirmText="Delete Plan"
+        cancelText="Cancel"
+        type="danger"
       />
     </div>
   );

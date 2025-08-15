@@ -16,6 +16,7 @@ import {
   Wallet,
   BookOpen,
   Heart,
+  Moon,
 } from "lucide-react";
 
 const Index = () => {
@@ -67,6 +68,14 @@ const Index = () => {
         "Create personalized workout and diet plans, track your fitness journey, and maintain daily health notes for continuous improvement.",
       color: "from-red-500 to-pink-500",
       route: "/health",
+    },
+    {
+      icon: <Moon className="w-8 h-8" />,
+      title: "Sleep Tracker",
+      description:
+        "Track your sleep patterns, monitor sleep quality, and maintain detailed sleep notes to improve your rest and overall health.",
+      color: "from-cyan-500 to-teal-500",
+      route: "/sleep",
     },
   ];
 
@@ -287,8 +296,8 @@ const Index = () => {
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Six powerful tools working together to help you achieve your goals
-              and build better habits.
+              Seven powerful tools working together to help you achieve your
+              goals and build better habits.
             </p>
           </motion.div>
 

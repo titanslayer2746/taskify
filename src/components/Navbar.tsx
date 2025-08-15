@@ -9,6 +9,7 @@ import {
   Wallet,
   BookOpen,
   Heart,
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -56,6 +57,10 @@ const Navbar = () => {
         return isActive
           ? `${baseStyles} bg-gradient-to-r from-pink-600 via-rose-600 to-pink-700 hover:shadow-lg hover:shadow-pink-500/25 focus:ring-pink-500/50 text-white`
           : `${baseStyles} bg-gradient-to-r from-pink-500/20 via-rose-500/20 to-pink-600/20 hover:from-pink-500/30 hover:via-rose-500/30 hover:to-pink-600/30 text-pink-300 hover:text-pink-200 hover:shadow-lg hover:shadow-pink-500/25 focus:ring-pink-500/50`;
+      case "/sleep":
+        return isActive
+          ? `${baseStyles} bg-gradient-to-r from-cyan-600 via-teal-600 to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/25 focus:ring-cyan-500/50 text-white`
+          : `${baseStyles} bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-cyan-600/20 hover:from-cyan-500/30 hover:via-teal-500/30 hover:to-cyan-600/30 text-cyan-300 hover:text-cyan-200 hover:shadow-lg hover:shadow-cyan-500/25 focus:ring-cyan-500/50`;
       default:
         return `${baseStyles} text-gray-300 hover:text-white hover:bg-gray-700/50`;
     }
@@ -95,6 +100,11 @@ const Navbar = () => {
         gradientClass = isActive
           ? "from-pink-600 via-rose-600 to-pink-700"
           : "from-pink-500/30 via-rose-500/30 to-pink-600/30";
+        break;
+      case "/sleep":
+        gradientClass = isActive
+          ? "from-cyan-600 via-teal-600 to-cyan-700"
+          : "from-cyan-500/30 via-teal-500/30 to-cyan-600/30";
         break;
       default:
         return null;
@@ -158,6 +168,9 @@ const Navbar = () => {
             <NavLink to="/health" icon={Heart}>
               Health
             </NavLink>
+            <NavLink to="/sleep" icon={Moon}>
+              Sleep
+            </NavLink>
           </div>
 
           {/* Mobile Menu Button */}
@@ -197,6 +210,9 @@ const Navbar = () => {
                 </NavLink>
                 <NavLink to="/health" icon={Heart}>
                   Health
+                </NavLink>
+                <NavLink to="/sleep" icon={Moon}>
+                  Sleep
                 </NavLink>
               </div>
             </motion.div>

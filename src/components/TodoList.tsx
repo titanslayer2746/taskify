@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 interface Todo {
   id: string;
@@ -47,6 +48,16 @@ const TodoList: React.FC<TodoListProps> = ({
   );
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    todoId: string | null;
+    todoTitle: string;
+  }>({
+    isOpen: false,
+    todoId: null,
+    todoTitle: "",
+  });
+  const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
 
   const sortOptions = [
     { value: "priority", label: "Sort by Priority", icon: "🔥" },
@@ -165,13 +176,46 @@ const TodoList: React.FC<TodoListProps> = ({
     );
   };
 
+  const handleDeleteClick = (todoId: string, todoTitle: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      todoId,
+      todoTitle,
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.todoId) {
+      onDeleteTodo(deleteConfirmation.todoId);
+    }
+    setDeleteConfirmation({
+      isOpen: false,
+      todoId: null,
+      todoTitle: "",
+    });
+  };
+
+  const toggleExpanded = (todoId: string) => {
+    setExpandedTodos((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(todoId)) {
+        newSet.delete(todoId);
+      } else {
+        newSet.add(todoId);
+      }
+      return newSet;
+    });
+  };
+
+  const isExpanded = (todoId: string) => expandedTodos.has(todoId);
+
   const completedCount = todos.filter((todo) => todo.completed).length;
   const totalCount = todos.length;
 
   return (
     <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-4 sm:p-6 border border-gray-700/30 backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
         <div>
           <h3 className="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-1 tracking-tight">
             TODO LIST
@@ -181,9 +225,9 @@ const TodoList: React.FC<TodoListProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Progress indicator */}
-          <div className="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-lg">
+          <div className="flex items-center gap-2 bg-blue-500/10 px-2 sm:px-3 py-1.5 rounded-lg">
             <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300"
@@ -204,7 +248,7 @@ const TodoList: React.FC<TodoListProps> = ({
 
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="group relative px-4 py-2 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-500/50"
+            className="group relative px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-500/50"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-700 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative flex items-center gap-2">
@@ -216,13 +260,13 @@ const TodoList: React.FC<TodoListProps> = ({
       </div>
 
       {/* Filters and Sorting */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="flex items-center gap-2 bg-gray-800/50 rounded-lg p-1">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center gap-1 sm:gap-2 bg-gray-800/50 rounded-lg p-1">
           {(["all", "active", "completed"] as const).map((filterOption) => (
             <button
               key={filterOption}
               onClick={() => setFilter(filterOption)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                 filter === filterOption
                   ? "bg-blue-500/20 text-blue-400"
                   : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -237,7 +281,7 @@ const TodoList: React.FC<TodoListProps> = ({
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 hover:border-gray-600/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 hover:border-gray-600/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-sm hover:shadow-md"
           >
             <span className="font-medium">{getCurrentSortLabel()}</span>
             <ChevronDown
@@ -290,7 +334,7 @@ const TodoList: React.FC<TodoListProps> = ({
       </div>
 
       {/* Todo List */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         <AnimatePresence mode="popLayout">
           {filteredTodos.length === 0 ? (
             <motion.div
@@ -320,16 +364,137 @@ const TodoList: React.FC<TodoListProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className={`group relative bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl p-4 border transition-all duration-300 hover:scale-[1.02] ${
+                className={`group relative bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl p-3 sm:p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                   todo.completed
                     ? "border-green-500/30 opacity-75"
                     : "border-gray-700/30 hover:border-gray-600/50"
                 }`}
+                onClick={() => toggleExpanded(todo.id)}
               >
-                <div className="flex items-start gap-3">
+                {/* Mobile Layout - Stacked */}
+                <div className="block sm:hidden">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                      {/* Checkbox */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleTodo(todo.id);
+                        }}
+                        className={`flex-shrink-0 mt-1 p-1 rounded-lg transition-all duration-200 ${
+                          todo.completed
+                            ? "text-green-400 hover:text-green-300"
+                            : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+                        }`}
+                      >
+                        {todo.completed ? (
+                          <CheckCircle size={20} />
+                        ) : (
+                          <Circle size={20} />
+                        )}
+                      </button>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h4
+                          className={`font-medium text-sm transition-all duration-200 ${
+                            todo.completed
+                              ? "line-through text-gray-500"
+                              : "text-white"
+                          }`}
+                        >
+                          {todo.title}
+                        </h4>
+                        {todo.description && (
+                          <motion.p
+                            initial={false}
+                            animate={{
+                              height: isExpanded(todo.id) ? "auto" : "2.5rem",
+                              overflow: isExpanded(todo.id)
+                                ? "visible"
+                                : "hidden",
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className={`text-sm mt-1 transition-all duration-200 ${
+                              todo.completed
+                                ? "line-through text-gray-600"
+                                : "text-gray-400"
+                            } ${!isExpanded(todo.id) ? "line-clamp-2" : ""}`}
+                          >
+                            {todo.description}
+                          </motion.p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Priority Badge - Rightmost */}
+                    <div
+                      className={`flex-shrink-0 px-1.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r ${getPriorityColor(
+                        todo.priority
+                      )} bg-clip-text text-transparent`}
+                    >
+                      {getPriorityIcon(todo.priority)} {todo.priority}
+                    </div>
+                  </div>
+
+                  {/* Meta Information - Full Width */}
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    {todo.dueDate && (
+                      <div
+                        className={`flex items-center gap-1 ${
+                          isOverdue(todo.dueDate) && !todo.completed
+                            ? "text-red-400"
+                            : ""
+                        }`}
+                      >
+                        <Calendar size={12} />
+                        <span>
+                          {isOverdue(todo.dueDate) && !todo.completed
+                            ? "Overdue: "
+                            : ""}
+                          {formatDate(todo.dueDate)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <Clock size={12} />
+                      <span>{formatDate(todo.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions - Full Width */}
+                  <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditTodo(todo.id, { completed: !todo.completed });
+                      }}
+                      className="p-1 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-all duration-200"
+                      title="Edit todo"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(todo.id, todo.title);
+                      }}
+                      className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                      title="Delete todo"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Desktop Layout - Horizontal */}
+                <div className="hidden sm:flex items-start gap-3">
                   {/* Checkbox */}
                   <button
-                    onClick={() => onToggleTodo(todo.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleTodo(todo.id);
+                    }}
                     className={`flex-shrink-0 mt-1 p-1 rounded-lg transition-all duration-200 ${
                       todo.completed
                         ? "text-green-400 hover:text-green-300"
@@ -348,7 +513,7 @@ const TodoList: React.FC<TodoListProps> = ({
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <h4
-                          className={`font-medium text-sm sm:text-base transition-all duration-200 ${
+                          className={`font-medium text-base transition-all duration-200 ${
                             todo.completed
                               ? "line-through text-gray-500"
                               : "text-white"
@@ -357,25 +522,24 @@ const TodoList: React.FC<TodoListProps> = ({
                           {todo.title}
                         </h4>
                         {todo.description && (
-                          <p
+                          <motion.p
+                            initial={false}
+                            animate={{
+                              height: isExpanded(todo.id) ? "auto" : "2.5rem",
+                              overflow: isExpanded(todo.id)
+                                ? "visible"
+                                : "hidden",
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
                             className={`text-sm mt-1 transition-all duration-200 ${
                               todo.completed
                                 ? "line-through text-gray-600"
                                 : "text-gray-400"
-                            }`}
+                            } ${!isExpanded(todo.id) ? "line-clamp-2" : ""}`}
                           >
                             {todo.description}
-                          </p>
+                          </motion.p>
                         )}
-                      </div>
-
-                      {/* Priority Badge */}
-                      <div
-                        className={`flex-shrink-0 px-2 py-1 rounded-lg text-xs font-medium bg-gradient-to-r ${getPriorityColor(
-                          todo.priority
-                        )} bg-clip-text text-transparent`}
-                      >
-                        {getPriorityIcon(todo.priority)} {todo.priority}
                       </div>
                     </div>
 
@@ -405,19 +569,32 @@ const TodoList: React.FC<TodoListProps> = ({
                     </div>
                   </div>
 
+                  {/* Priority Badge */}
+                  <div
+                    className={`flex-shrink-0 px-2 py-1 rounded-lg text-xs font-medium bg-gradient-to-r ${getPriorityColor(
+                      todo.priority
+                    )} bg-clip-text text-transparent`}
+                  >
+                    {getPriorityIcon(todo.priority)} {todo.priority}
+                  </div>
+
                   {/* Actions */}
                   <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
-                      onClick={() =>
-                        onEditTodo(todo.id, { completed: !todo.completed })
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditTodo(todo.id, { completed: !todo.completed });
+                      }}
                       className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                       title="Edit todo"
                     >
                       <Edit3 size={16} />
                     </button>
                     <button
-                      onClick={() => onDeleteTodo(todo.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(todo.id, todo.title);
+                      }}
                       className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
                       title="Delete todo"
                     >
@@ -436,6 +613,24 @@ const TodoList: React.FC<TodoListProps> = ({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onConfirm={onCreateTodo}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            todoId: null,
+            todoTitle: "",
+          })
+        }
+        onConfirm={handleConfirmDelete}
+        title="Delete Todo"
+        message={`Are you sure you want to delete "${deleteConfirmation.todoTitle}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
       />
     </div>
   );

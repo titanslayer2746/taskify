@@ -4,6 +4,7 @@ import FinanceModal from "../components/FinanceModal";
 import FinanceCard from "../components/FinanceCard";
 import FinanceStats from "../components/FinanceStats";
 import FinanceDashboard from "../components/FinanceDashboard";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 import {
   Plus,
   TrendingUp,
@@ -36,6 +37,15 @@ const Finance = () => {
   );
   const [sortBy, setSortBy] = useState<"date" | "amount" | "title">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    entryId: string | null;
+    entryTitle: string;
+  }>({
+    isOpen: false,
+    entryId: null,
+    entryTitle: "",
+  });
 
   useEffect(() => {
     const savedEntries = localStorage.getItem("financeEntries");
@@ -58,8 +68,25 @@ const Finance = () => {
     setEntryToCopy(null);
   };
 
-  const deleteEntry = (id: string) => {
-    setEntries(entries.filter((entry) => entry.id !== id));
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      entryId: id,
+      entryTitle: title,
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.entryId) {
+      setEntries(
+        entries.filter((entry) => entry.id !== deleteConfirmation.entryId)
+      );
+    }
+    setDeleteConfirmation({
+      isOpen: false,
+      entryId: null,
+      entryTitle: "",
+    });
   };
 
   const copyEntry = (entry: FinanceEntry) => {
@@ -333,7 +360,7 @@ const Finance = () => {
               <FinanceCard
                 key={entry.id}
                 entry={entry}
-                onDelete={deleteEntry}
+                onDelete={(id) => handleDeleteClick(id, entry.title)}
                 onCopy={copyEntry}
                 getCategoryIcon={getCategoryIcon}
               />
@@ -353,6 +380,24 @@ const Finance = () => {
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
         entries={entries}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            entryId: null,
+            entryTitle: "",
+          })
+        }
+        onConfirm={handleConfirmDelete}
+        title="Delete Entry"
+        message={`Are you sure you want to delete "${deleteConfirmation.entryTitle}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
       />
     </div>
   );
