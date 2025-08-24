@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: habittty-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN_PROD
+        sync: false
+      - key: CORS_CREDENTIALS
+        value: true
+      - key: CORS_METHODS
+        value: GET,POST,PUT,PATCH,DELETE,OPTIONS
+      - key: CORS_ALLOWED_HEADERS
+        value: Content-Type,Authorization,X-Requested-With

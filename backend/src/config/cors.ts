@@ -15,6 +15,7 @@ const corsOptions = {
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8080",
+        "https://taskify-nu-three.vercel.app/",
       ];
 
       // For development, allow any localhost origin
