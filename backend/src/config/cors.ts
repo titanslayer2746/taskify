@@ -9,13 +9,7 @@ const corsOptions = {
       if (!origin) return callback(null, true);
 
       const allowedOrigins = process.env.CORS_ORIGIN_DEV?.split(",") || [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:8080",
-        "https://taskify-nu-three.vercel.app/",
+        "https://taskify-nu-three.vercel.app",
       ];
 
       // For development, allow any localhost origin
@@ -84,9 +78,9 @@ const corsOptions = {
 
 // Get current environment
 const getCurrentEnvironment = (): "development" | "production" => {
-  return (
-    (process.env.NODE_ENV as "development" | "production") || "development"
-  );
+  return process.env.NODE_ENV?.toLowerCase() === "production"
+    ? "production"
+    : "development";
 };
 
 // Export CORS middleware with environment-specific configuration
