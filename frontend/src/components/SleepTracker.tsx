@@ -313,23 +313,6 @@ ${sleepNotes}`;
     }
   };
 
-  // Test function to verify journal API is working
-  const testJournalAPI = async () => {
-    try {
-      console.log("Testing journal API...");
-      const testResponse = await apiService.createJournalEntry({
-        title: "Test Journal Entry",
-        content: "This is a test entry to verify the API is working.",
-        tags: ["test"],
-      });
-      console.log("Test journal entry created:", testResponse);
-      alert("Journal API test successful!");
-    } catch (error) {
-      console.error("Journal API test failed:", error);
-      alert("Journal API test failed: " + error.message);
-    }
-  };
-
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -423,12 +406,6 @@ ${sleepNotes}`;
             <p className="text-sm text-gray-400">This Week</p>
             <p className="text-xl font-bold text-white">{stats.thisWeek}</p>
           </div>
-          <button
-            onClick={testJournalAPI}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm"
-          >
-            Test Journal API
-          </button>
         </div>
       </div>
 
