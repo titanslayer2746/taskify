@@ -15,6 +15,10 @@ connectDB();
 
 // Middleware
 app.use(corsMiddleware);
+
+// Handle preflight requests
+app.options("*", corsMiddleware);
+
 app.use(express.json());
 
 // API routes
@@ -25,10 +29,19 @@ app.use(corsErrorHandler);
 
 // Root route
 app.get("/", (req, res) => {
+  const baseUrl =
+    process.env.NODE_ENV === "production"
+      ? `https://${req.get("host")}`
+      : `http://localhost:${PORT}`;
+
   res.json({
     message: "Habitty Backend Server is running!",
-    api: "http://localhost:3001/api",
-    health: "http://localhost:3001/api/health",
+    api: `${baseUrl}/api`,
+    health: `${baseUrl}/api/health`,
+    environment: process.env.NODE_ENV || "development",
+    cors: {
+      allowedOrigins: process.env.CORS_ORIGIN_PROD || "Not configured",
+    },
   });
 });
 
