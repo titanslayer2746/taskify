@@ -4,7 +4,7 @@ dotenv.config();
 import express from "express";
 import { connectDB } from "./db/connection";
 import apiRoutes from "./routes";
-import { corsMiddleware } from "./config/cors";
+import cors from "cors";
 import { corsErrorHandler } from "./middleware/cors-error-handler";
 
 const app = express();
@@ -13,11 +13,13 @@ const PORT = process.env.PORT || 3001;
 // Database connection
 connectDB();
 
-// Middleware
-app.use(corsMiddleware);
-
-// Handle preflight requests
-app.options("*", corsMiddleware);
+app.use(
+  cors({
+    origin: "https://taskify-nu-three.vercel.app", // your Vercel frontend URL
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
