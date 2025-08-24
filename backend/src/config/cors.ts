@@ -55,12 +55,16 @@ const corsOptions = {
       if (!origin) return callback(null, true);
 
       const allowedOrigins = process.env.CORS_ORIGIN_PROD?.split(",") || [
-        "https://your-frontend-domain.com",
+        "https://taskify-nu-three.vercel.app",
+        "https://taskify-nu-three.vercel.app/",
       ];
+
+      console.log(`CORS check - Origin: ${origin}, Allowed: ${allowedOrigins}`);
 
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
+        console.log(`CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
