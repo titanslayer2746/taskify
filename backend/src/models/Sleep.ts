@@ -44,11 +44,12 @@ const sleepEntrySchema = new Schema<ISleepEntry>(
       validate: {
         validator: function (v: number) {
           if (!v) return true; // Allow empty/undefined
-          if (!this.checkOut) return true; // Skip validation if no checkout
+          const doc = this as any;
+          if (!doc.checkOut) return true; // Skip validation if no checkout
 
           // Ensure duration is calculated correctly
-          const checkIn = new Date(this.checkIn);
-          const checkOut = new Date(this.checkOut!); // We know it exists here due to the check above
+          const checkIn = new Date(doc.checkIn);
+          const checkOut = new Date(doc.checkOut);
           const calculatedDuration = Math.round(
             (checkOut.getTime() - checkIn.getTime()) / (1000 * 60)
           );
