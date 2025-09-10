@@ -337,4 +337,3 @@ sudo service redis-server restart
 **Last Updated**: September 2024
 **Version**: 1.0.0
 **Maintainer**: Habitty Development Team
-
