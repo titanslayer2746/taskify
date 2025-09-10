@@ -81,8 +81,15 @@ export const useAuth = (): UseAuthReturn => {
       const validation = authUtils.validateAuthState();
 
       if (!validation.isValid) {
-        // Token is invalid, logout user
-        logout();
+        // Token is invalid, clear local data without calling logout API
+        authUtils.secureLogout();
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false,
+          error: null,
+        });
         return;
       }
 

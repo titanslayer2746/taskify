@@ -20,7 +20,15 @@ connectRedis();
 
 app.use(
   cors({
-    origin: "https://taskify-nu-three.vercel.app", // your Vercel frontend URL
+    origin: [
+      "https://taskify-nu-three.vercel.app", // your Vercel frontend URL
+      "http://localhost:8080", // local development on port 8080
+      "http://localhost:5173", // Vite default port
+      "http://localhost:3000", // React default port
+      "http://127.0.0.1:8080",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:3000",
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   })

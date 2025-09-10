@@ -543,8 +543,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       const validation = authUtils.validateAuthState();
 
       if (!validation.isValid) {
-        // Token is invalid, logout user
-        logout();
+        // Token is invalid, clear local data without calling logout API
+        authUtils.secureLogout();
+        dispatch({ type: "LOGOUT" });
+        onAuthStateChange?.(false, null);
         return;
       }
 
