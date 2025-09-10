@@ -10,9 +10,11 @@ const corsOptions = {
 
       const allowedOrigins = process.env.CORS_ORIGIN_DEV?.split(",") || [
         "https://taskify-nu-three.vercel.app",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
       ];
 
-      // For development, allow any localhost origin
+      // For development, allow any localhost origin (including port 8000)
       if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
         return callback(null, true);
       }
