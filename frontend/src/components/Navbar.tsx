@@ -13,7 +13,6 @@ import {
   LogOut,
   User,
   Settings,
-  FolderKanban,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -195,9 +194,6 @@ const Navbar = () => {
             <NavLink to="/sleep" icon={Moon}>
               Sleep
             </NavLink>
-            <NavLink to="/projects" icon={FolderKanban}>
-              Projects
-            </NavLink>
           </div>
 
           {/* User Menu */}
@@ -280,9 +276,6 @@ const Navbar = () => {
                 </NavLink>
                 <NavLink to="/sleep" icon={Moon}>
                   Sleep
-                </NavLink>
-                <NavLink to="/projects" icon={FolderKanban}>
-                  Projects
                 </NavLink>
 
                 {/* Mobile User Menu */}
