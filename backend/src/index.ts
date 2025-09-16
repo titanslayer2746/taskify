@@ -3,11 +3,8 @@ dotenv.config();
 
 import express from "express";
 import { connectDB } from "./db/connection";
-import { connectRedis } from "./config/redis";
 import apiRoutes from "./routes";
 import cors from "cors";
-import { corsErrorHandler } from "./middleware/cors-error-handler";
-import { sessionService } from "./services/sessionService";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,12 +12,12 @@ const PORT = process.env.PORT || 3001;
 // Database connection
 connectDB();
 
-// Redis connection
-connectRedis();
+// CORS configuration
+const corsOrigins = process.env.CORS_ORIGINS?.split(",");
 
 app.use(
   cors({
-    origin: "https://taskify-nu-three.vercel.app", // your Vercel frontend URL
+    origin: corsOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   })
@@ -30,9 +27,6 @@ app.use(express.json());
 
 // API routes
 app.use("/api", apiRoutes);
-
-// Error handling middleware (must be after routes)
-app.use(corsErrorHandler);
 
 // Root route
 app.get("/", (req, res) => {
@@ -57,8 +51,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`API Base URL: http://localhost:${PORT}/api`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
-
-  // Start session cleanup service (runs every 5 minutes)
-  sessionService.startSessionCleanup(5);
-  console.log(`🔄 Session cleanup service started (every 5 minutes)`);
 });

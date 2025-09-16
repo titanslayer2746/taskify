@@ -6,7 +6,6 @@ import EnhancedFooter from "../components/EnhancedFooter";
 import TestimonialCard from "../components/TestimonialCard";
 import StatisticsCard from "../components/StatisticsCard";
 import FAQAccordion from "../components/FAQAccordion";
-import NewsletterSignup from "../components/NewsletterSignup";
 import {
   Target,
   Clock,
@@ -231,12 +230,6 @@ const Index = () => {
       category: "Features",
     },
     {
-      question: "Do you offer a free trial?",
-      answer:
-        "Yes! We offer a generous free trial that includes all core features. You can track habits, manage tasks, use the Pomodoro timer, and explore all our tools without any limitations. No credit card required to start your productivity journey.",
-      category: "Pricing",
-    },
-    {
       question: "How do I get started with Taskify?",
       answer:
         "Getting started is easy! Simply create an account, choose your first habit to track, and start building your productivity routine. Our onboarding process guides you through setting up your first habits and tasks, and you'll see results from day one.",
@@ -371,11 +364,62 @@ const Index = () => {
             </motion.h1>
 
             <motion.p
-              className="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
+              className="text-xl sm:text-2xl text-gray-300 mb-6 max-w-4xl mx-auto leading-relaxed"
               variants={itemVariants}
             >
-              Your all-in-one productivity companion. Build habits, manage
-              tasks, and boost focus with powerful tools designed for success.
+              Your comprehensive productivity ecosystem. Transform your life
+              with 6 powerful tools:
+            </motion.p>
+
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-8"
+              variants={itemVariants}
+            >
+              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+                <Target className="w-5 h-5 text-purple-400" />
+                <span className="text-gray-300 text-sm font-medium">
+                  Habit Tracking
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+                <CheckSquare className="w-5 h-5 text-blue-400" />
+                <span className="text-gray-300 text-sm font-medium">
+                  Task Management
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+                <Wallet className="w-5 h-5 text-amber-400" />
+                <span className="text-gray-300 text-sm font-medium">
+                  Finance Tracker
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+                <BookOpen className="w-5 h-5 text-yellow-400" />
+                <span className="text-gray-300 text-sm font-medium">
+                  Journal
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+                <Heart className="w-5 h-5 text-red-400" />
+                <span className="text-gray-300 text-sm font-medium">
+                  Health & Wellness
+                </span>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+                <Moon className="w-5 h-5 text-cyan-400" />
+                <span className="text-gray-300 text-sm font-medium">
+                  Sleep Tracker
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.p
+              className="text-lg text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed"
+              variants={itemVariants}
+            >
+              Build lasting habits, manage finances, track health, boost
+              productivity, and achieve your goals with intelligent analytics
+              and beautiful visualizations.
             </motion.p>
 
             <motion.div
@@ -723,213 +767,6 @@ const Index = () => {
                 Contact our support team
               </Link>
             </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Newsletter Signup Section */}
-      <div className="py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <NewsletterSignup />
-          </div>
-        </div>
-      </div>
-
-      {/* Pricing Section */}
-      <div className="py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Simple, transparent
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                {" "}
-                pricing
-              </span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Start free, upgrade when you're ready. No hidden fees, no
-              surprises.
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="max-w-4xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Free Trial Plan */}
-              <motion.div
-                className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/30 backdrop-blur-sm"
-                whileHover={{ y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="text-center mb-8">
-                  <motion.div
-                    className="w-16 h-16 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Target className="w-8 h-8 text-green-400" />
-                  </motion.div>
-                  <h3 className="text-2xl font-bold mb-2">Free Trial</h3>
-                  <p className="text-gray-400">Perfect to get started</p>
-                </div>
-
-                <div className="text-center mb-8">
-                  <div className="flex items-baseline justify-center gap-2 mb-2">
-                    <span className="text-4xl font-bold">₹0</span>
-                    <span className="text-gray-400">/7 days</span>
-                  </div>
-                  <p className="text-sm text-gray-500">Then ₹200/month</p>
-                </div>
-
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">All features included</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Habit tracking</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Task management</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Pomodoro timer</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Progress analytics</span>
-                  </li>
-                </ul>
-
-                <motion.button
-                  className="w-full px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25 focus:outline-none focus:ring-4 focus:ring-gray-500/50 border border-gray-600"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Start Free Trial
-                </motion.button>
-              </motion.div>
-
-              {/* Pro Plan */}
-              <motion.div
-                className="relative bg-gradient-to-br from-purple-800/30 via-blue-800/30 to-emerald-800/30 rounded-2xl p-8 border border-purple-500/30 backdrop-blur-sm"
-                whileHover={{ y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  className="absolute -top-4 left-1/2 transform -translate-x-1/2"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                >
-                  <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Most Popular
-                  </div>
-                </motion.div>
-
-                <div className="text-center mb-8">
-                  <motion.div
-                    className="w-16 h-16 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Star className="w-8 h-8 text-purple-400" />
-                  </motion.div>
-                  <h3 className="text-2xl font-bold mb-2">Pro Plan</h3>
-                  <p className="text-gray-400">Unlock full potential</p>
-                </div>
-
-                <div className="text-center mb-8">
-                  <div className="flex items-baseline justify-center gap-2 mb-2">
-                    <span className="text-4xl font-bold">₹200</span>
-                    <span className="text-gray-400">/month</span>
-                  </div>
-                  <p className="text-sm text-gray-500">Billed monthly</p>
-                </div>
-
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">
-                      Everything in Free Trial
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">
-                      Unlimited habits & tasks
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Advanced analytics</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Priority support</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                    </div>
-                    <span className="text-gray-300">Cloud sync</span>
-                  </li>
-                </ul>
-
-                <motion.button
-                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Get Started
-                </motion.button>
-              </motion.div>
-            </div>
-
-            <motion.div
-              className="text-center mt-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <p className="text-gray-400 text-sm">
-                Cancel anytime. No questions asked.
-              </p>
-            </motion.div>
           </motion.div>
         </div>
       </div>
