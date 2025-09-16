@@ -66,8 +66,8 @@ export const loggingRequestInterceptor: RequestInterceptor = (config) => {
 export const authResponseInterceptor: ResponseInterceptor = (response) => {
   // Handle 401 Unauthorized responses
   if (response.status === 401) {
-    clearAuthData();
-    console.warn("🔐 Authentication expired. User logged out.");
+    // Don't automatically clear auth data on 401 - let the auth context handle it
+    console.warn("🔐 Authentication expired. Let auth context handle logout.");
 
     // You can add redirect logic here
     // window.location.href = '/signin';

@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
   Settings,
+  FolderKanban,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,6 +76,10 @@ const Navbar = () => {
         return isActive
           ? `${baseStyles} bg-gradient-to-r from-cyan-600 via-teal-600 to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/25 focus:ring-cyan-500/50 text-white`
           : `${baseStyles} bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-cyan-600/20 hover:from-cyan-500/30 hover:via-teal-500/30 hover:to-cyan-600/30 text-cyan-300 hover:text-cyan-200 hover:shadow-lg hover:shadow-cyan-500/25 focus:ring-cyan-500/50`;
+      case "/projects":
+        return isActive
+          ? `${baseStyles} bg-gradient-to-r from-lime-600 via-green-500 to-lime-700 hover:shadow-lg hover:shadow-lime-500/25 focus:ring-lime-500/50 text-white`
+          : `${baseStyles} bg-gradient-to-r from-lime-500/20 via-green-500/20 to-lime-600/20 hover:from-lime-500/30 hover:via-green-500/30 hover:to-lime-600/30 text-lime-300 hover:text-lime-200 hover:shadow-lg hover:shadow-lime-500/25 focus:ring-lime-500/50`;
       default:
         return `${baseStyles} text-gray-300 hover:text-white hover:bg-gray-700/50`;
     }
@@ -119,6 +124,11 @@ const Navbar = () => {
         gradientClass = isActive
           ? "from-cyan-600 via-teal-600 to-cyan-700"
           : "from-cyan-500/30 via-teal-500/30 to-cyan-600/30";
+        break;
+      case "/projects":
+        gradientClass = isActive
+          ? "from-lime-600 via-green-500 to-lime-700"
+          : "from-lime-500/30 via-green-500/30 to-lime-600/30";
         break;
       default:
         return null;
@@ -184,6 +194,9 @@ const Navbar = () => {
             </NavLink>
             <NavLink to="/sleep" icon={Moon}>
               Sleep
+            </NavLink>
+            <NavLink to="/projects" icon={FolderKanban}>
+              Projects
             </NavLink>
           </div>
 
@@ -267,6 +280,9 @@ const Navbar = () => {
                 </NavLink>
                 <NavLink to="/sleep" icon={Moon}>
                   Sleep
+                </NavLink>
+                <NavLink to="/projects" icon={FolderKanban}>
+                  Projects
                 </NavLink>
 
                 {/* Mobile User Menu */}

@@ -15,6 +15,7 @@ import Finance from "./pages/Finance";
 import Journal from "./pages/Journal";
 import Health from "./pages/Health";
 import Sleep from "./pages/Sleep";
+import Projects from "./pages/Projects";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -131,6 +132,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Sleep />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <Projects />
                 </ProtectedRoute>
               }
             />

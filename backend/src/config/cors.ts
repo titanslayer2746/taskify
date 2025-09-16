@@ -8,9 +8,7 @@ const corsOptions = {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      const allowedOrigins = process.env.CORS_ORIGIN_DEV?.split(",") || [
-        "https://taskify-nu-three.vercel.app",
-      ];
+      const allowedOrigins = ["https://taskify-nu-three.vercel.app"];
 
       // For development, allow any localhost origin
       if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
