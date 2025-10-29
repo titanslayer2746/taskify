@@ -11,6 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import VerifyOtp from "./pages/VerifyOtp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Habits from "./pages/Habits";
 import Todo from "./pages/Todo";
 import Pomodoro from "./pages/Pomodoro";
@@ -27,7 +30,7 @@ const queryClient = new QueryClient();
 const ChatbotWrapper = () => {
   const { user } = useAuth();
   const location = useLocation();
-  const isPublicRoute = ["/", "/signin", "/signup"].includes(location.pathname);
+  const isPublicRoute = ["/", "/signin", "/signup", "/verify-otp", "/forgot-password", "/reset-password"].includes(location.pathname);
 
   // Only show chatbot on protected routes (when user is authenticated)
   if (!user || isPublicRoute) return null;
@@ -66,6 +69,30 @@ const App = () => (
                 element={
                   <PublicRoute redirectTo="/habits">
                     <SignUp />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/verify-otp"
+                element={
+                  <PublicRoute redirectTo="/habits">
+                    <VerifyOtp />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  <PublicRoute redirectTo="/habits">
+                    <ForgotPassword />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  <PublicRoute redirectTo="/habits">
+                    <ResetPassword />
                   </PublicRoute>
                 }
               />

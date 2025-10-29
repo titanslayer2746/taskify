@@ -48,6 +48,8 @@ import {
   ApiResponse,
   PaginationParams,
   PaginatedResponse,
+  FinanceStats,
+  SleepStats,
 } from "./types";
 
 class ApiService {
@@ -76,6 +78,26 @@ class ApiService {
   // Get current user profile
   async getProfile(): Promise<ApiResponse<{ user: User }>> {
     return httpClient.get<{ user: User }>("/users/profile");
+  }
+
+  // Verify OTP for email verification
+  async verifyOtp(data: { email: string; otp: string }): Promise<ApiResponse<AuthResponse>> {
+    return httpClient.post<AuthResponse>("/users/verify-otp", data);
+  }
+
+  // Resend OTP for email verification
+  async resendOtp(data: { email: string }): Promise<ApiResponse<{ message: string; otpExpiresIn: number }>> {
+    return httpClient.post<{ message: string; otpExpiresIn: number }>("/users/resend-otp", data);
+  }
+
+  // Forgot password - send reset link
+  async forgotPassword(data: { email: string }): Promise<ApiResponse<{ message: string }>> {
+    return httpClient.post<{ message: string }>("/users/forgot-password", data);
+  }
+
+  // Reset password - validate token and update password
+  async resetPassword(data: { token: string; password: string; confirmPassword: string }): Promise<ApiResponse<{ message: string }>> {
+    return httpClient.post<{ message: string }>("/users/reset-password", data);
   }
 
   // ==================== HABITS ====================
