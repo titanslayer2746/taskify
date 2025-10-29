@@ -50,6 +50,7 @@ export interface User {
   email: string;
   name: string;
   isActive: boolean;
+  isEmailVerified: boolean;
   lastLogin?: string;
   createdAt: string;
   updatedAt?: string;
@@ -71,6 +72,8 @@ export interface AuthResponse {
   token: string;
   refreshToken?: string;
   expiresIn?: number;
+  requiresVerification?: boolean;
+  otpExpiresIn?: number;
 }
 
 export interface RefreshTokenResponse {
