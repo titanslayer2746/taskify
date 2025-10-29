@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { BACKEND_CONFIG } from "../config/backend";
 import { ActionItem, ExecutionProgress } from "../types";
 
@@ -39,26 +39,32 @@ export class ApiService {
 
         switch (action.type) {
           case "create_todos":
-            actionResults = await this.createTodos(action.data, (itemIndex, totalItems) => {
-              const itemCompleted = completed + itemIndex + 1;
-              onProgress?.({
-                step: `Creating todo ${itemIndex + 1} of ${totalItems}...`,
-                completed: itemCompleted,
-                total,
-                status: "in_progress",
-              });
-            });
+            actionResults = await this.createTodos(
+              action.data,
+              (itemIndex, totalItems) => {
+                const itemCompleted = completed + itemIndex + 1;
+                onProgress?.({
+                  step: `Creating todo ${itemIndex + 1} of ${totalItems}...`,
+                  completed: itemCompleted,
+                  total,
+                  status: "in_progress",
+                });
+              }
+            );
             break;
           case "create_habits":
-            actionResults = await this.createHabits(action.data, (itemIndex, totalItems) => {
-              const itemCompleted = completed + itemIndex + 1;
-              onProgress?.({
-                step: `Creating habit ${itemIndex + 1} of ${totalItems}...`,
-                completed: itemCompleted,
-                total,
-                status: "in_progress",
-              });
-            });
+            actionResults = await this.createHabits(
+              action.data,
+              (itemIndex, totalItems) => {
+                const itemCompleted = completed + itemIndex + 1;
+                onProgress?.({
+                  step: `Creating habit ${itemIndex + 1} of ${totalItems}...`,
+                  completed: itemCompleted,
+                  total,
+                  status: "in_progress",
+                });
+              }
+            );
             break;
           case "create_meal_plan":
             actionResults = await this.createMealPlan(action.data);
@@ -67,15 +73,20 @@ export class ApiService {
             actionResults = await this.createWorkoutPlan(action.data);
             break;
           case "create_journal":
-            actionResults = await this.createJournalEntries(action.data, (itemIndex, totalItems) => {
-              const itemCompleted = completed + itemIndex + 1;
-              onProgress?.({
-                step: `Creating journal entry ${itemIndex + 1} of ${totalItems}...`,
-                completed: itemCompleted,
-                total,
-                status: "in_progress",
-              });
-            });
+            actionResults = await this.createJournalEntries(
+              action.data,
+              (itemIndex, totalItems) => {
+                const itemCompleted = completed + itemIndex + 1;
+                onProgress?.({
+                  step: `Creating journal entry ${
+                    itemIndex + 1
+                  } of ${totalItems}...`,
+                  completed: itemCompleted,
+                  total,
+                  status: "in_progress",
+                });
+              }
+            );
             break;
           default:
             console.warn(`Unknown action type: ${action.type}`);
@@ -94,7 +105,8 @@ export class ApiService {
           status: "in_progress",
         });
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+        const errorMessage =
+          error.response?.data?.message || error.message || "Unknown error";
         console.log(`❌ Failed to execute ${action.type}: ${errorMessage}`);
         errors.push({
           action: action.type,
@@ -131,46 +143,49 @@ export class ApiService {
     onItemProgress?: (itemIndex: number, totalItems: number) => void
   ): Promise<any[]> {
     console.log(`📝 Creating ${todos.length} todos`);
-    
+
     // Debug: Log the raw data from AI
     console.log("🔍 Raw todos data from AI:", JSON.stringify(todos, null, 2));
-    
+
     // Clean up todo data to ensure proper format
     const cleanedTodos = todos.map((todo: any) => {
       const cleanedTodo: any = {
         title: todo.title,
         description: todo.description || "",
         priority: todo.priority || "medium",
-        category: todo.category || "general"
+        category: todo.category || "general",
       };
-      
+
       // Fix due date format
       if (todo.dueDate) {
         // If it's already in YYYY-MM-DD format, use it
-        if (typeof todo.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(todo.dueDate)) {
+        if (
+          typeof todo.dueDate === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(todo.dueDate)
+        ) {
           cleanedTodo.dueDate = todo.dueDate;
         } else {
           // Try to parse and format the date
           const date = new Date(todo.dueDate);
           if (!isNaN(date.getTime())) {
-            cleanedTodo.dueDate = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+            cleanedTodo.dueDate = date.toISOString().split("T")[0]; // YYYY-MM-DD format
           } else {
             // If we can't parse it, set a default date (7 days from now)
             const defaultDate = new Date();
             defaultDate.setDate(defaultDate.getDate() + 7);
-            cleanedTodo.dueDate = defaultDate.toISOString().split('T')[0];
+            cleanedTodo.dueDate = defaultDate.toISOString().split("T")[0];
           }
         }
       } else {
         // Set default due date (7 days from now)
         const defaultDate = new Date();
         defaultDate.setDate(defaultDate.getDate() + 7);
-        cleanedTodo.dueDate = defaultDate.toISOString().split('T')[0];
+        cleanedTodo.dueDate = defaultDate.toISOString().split("T")[0];
       }
-      
+
       return cleanedTodo;
     });
-    
+
     const results = [];
     for (let i = 0; i < cleanedTodos.length; i++) {
       onItemProgress?.(i, cleanedTodos.length);
@@ -199,42 +214,47 @@ export class ApiService {
   private async createMealPlan(mealPlan: any): Promise<any[]> {
     // Handle both single meal plan object and array of meal plans
     const planData = Array.isArray(mealPlan) ? mealPlan[0] : mealPlan;
-    
+
     // Convert duration from days to weeks for backend validation
     if (planData.duration && planData.duration > 52) {
       planData.duration = Math.ceil(planData.duration / 7); // Convert days to weeks
     }
-    
-    console.log(`🍽️ Creating meal plan: ${planData.name} (${planData.duration} weeks)`);
-    
+
+    console.log(
+      `🍽️ Creating meal plan: ${planData.name} (${planData.duration} weeks)`
+    );
+
     const response = await this.axiosInstance.post("/meal", planData);
-    
+
     if (response.data.success) {
       console.log(`✅ Meal plan created successfully: ${planData.name}`);
     } else {
       console.log(`❌ Meal plan creation failed: ${response.data.message}`);
     }
-    
+
     return [response.data];
   }
 
   private async createWorkoutPlan(workoutPlan: any): Promise<any[]> {
     // Handle both single workout plan object and array of workout plans
     const planData = Array.isArray(workoutPlan) ? workoutPlan[0] : workoutPlan;
-    
+
     // Debug: Log the raw data from AI
-    console.log("🔍 Raw workout plan data from AI:", JSON.stringify(planData, null, 2));
-    
+    console.log(
+      "🔍 Raw workout plan data from AI:",
+      JSON.stringify(planData, null, 2)
+    );
+
     // Ensure duration is properly set
     if (!planData.duration || planData.duration === undefined) {
       planData.duration = 8; // Default to 8 weeks
     }
-    
+
     // Convert duration from days to weeks for backend validation
     if (planData.duration && planData.duration > 52) {
       planData.duration = Math.ceil(planData.duration / 7); // Convert days to weeks
     }
-    
+
     // Clean up the exercise data to ensure proper format
     if (planData.exercises) {
       planData.exercises = planData.exercises.map((exercise: any) => {
@@ -242,9 +262,9 @@ export class ApiService {
           id: exercise.id, // Keep the AI-generated ID
           name: exercise.name,
           sets: exercise.sets || 1,
-          notes: exercise.notes || ""
+          notes: exercise.notes || "",
         };
-        
+
         // Only include reps or duration, not both
         if (exercise.reps && exercise.reps > 0 && exercise.reps <= 1000) {
           cleanedExercise.reps = exercise.reps;
@@ -257,24 +277,27 @@ export class ApiService {
           // Default to 10 reps if neither reps nor duration is valid
           cleanedExercise.reps = 10;
         }
-        
+
         return cleanedExercise;
       });
     }
-    
-    console.log(`💪 Creating workout plan: ${planData.name} (${planData.duration} weeks, ${planData.exercises?.length || 0} exercises)`);
-    
+
+    console.log(
+      `💪 Creating workout plan: ${planData.name} (${
+        planData.duration
+      } weeks, ${planData.exercises?.length || 0} exercises)`
+    );
+
     const response = await this.axiosInstance.post("/workout", planData);
-    
+
     if (response.data.success) {
       console.log(`✅ Workout plan created successfully: ${planData.name}`);
     } else {
       console.log(`❌ Workout plan creation failed: ${response.data.message}`);
     }
-    
+
     return [response.data];
   }
-
 
   private async createJournalEntries(
     entries: any[],
