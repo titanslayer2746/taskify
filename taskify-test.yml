@@ -1,0 +1,64 @@
+config:
+  target: "https://taskify-nler.onrender.com"
+  phases:
+    - duration: 60
+      arrivalRate: 8 # ~480 requests total
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Authenticated User Flow - Todos"
+    flow:
+      # 1. Login and capture auth token
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "yatin@gmail.com" # ⚠️ USE YOUR TEST USER
+            password: "123456789" # ⚠️ USE YOUR TEST PASSWORD
+          capture:
+            - json: "$.data.token" # Token is in data.token
+              as: "authToken"
+
+      # 2. Create a new todo (requires auth)
+      - post:
+          url: "/api/todos"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            title: "Artillery Load Test Todo"
+            description: "Performance testing"
+            priority: "medium"
+            completed: false
+
+      # 3. Get all todos (requires auth)
+      - get:
+          url: "/api/todos"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+      # 4. Health check (no auth needed)
+      - get:
+          url: "/api/health"
+
+  - name: "Mixed Operations - Habits & Todos"
+    weight: 30 # 30% of virtual users run this scenario
+    flow:
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "yatin@gmail.com"
+            password: "123456789"
+          capture:
+            - json: "$.data.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/habits"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+      - get:
+          url: "/api/todos"
+          headers:
+            Authorization: "Bearer {{ authToken }}"

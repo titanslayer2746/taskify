@@ -250,6 +250,7 @@ Make sure to set up your environment variables:
 ```bash
 # .env
 VITE_API_URL=http://localhost:3001/api
+VITE_CHATBOT_URL=http://localhost:4000
 ```
 
 ## Error Types

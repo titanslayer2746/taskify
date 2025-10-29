@@ -5,7 +5,7 @@ interface ExerciseInput {
   id?: string;
   name: string;
   sets: number;
-  reps: number;
+  reps?: number;
   duration?: number;
   notes?: string;
 }
@@ -79,7 +79,11 @@ export const createWorkoutPlan = async (req: Request, res: Response) => {
         });
       }
 
-      if (!exercise.reps || exercise.reps < 1 || exercise.reps > 1000) {
+      // Check reps only if duration is not provided or is 0
+      if (
+        (!exercise.duration || exercise.duration === 0) &&
+        (!exercise.reps || exercise.reps < 1 || exercise.reps > 1000)
+      ) {
         return res.status(400).json({
           success: false,
           message: "Exercise reps must be between 1 and 1000",
@@ -390,7 +394,11 @@ export const updateWorkoutPlan = async (req: Request, res: Response) => {
           });
         }
 
-        if (!exercise.reps || exercise.reps < 1 || exercise.reps > 1000) {
+        // Check reps only if duration is not provided or is 0
+        if (
+          (!exercise.duration || exercise.duration === 0) &&
+          (!exercise.reps || exercise.reps < 1 || exercise.reps > 1000)
+        ) {
           return res.status(400).json({
             success: false,
             message: "Exercise reps must be between 1 and 1000",

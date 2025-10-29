@@ -9,11 +9,9 @@ import {
   Clock,
   Star,
   MoreVertical,
-  Edit3,
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import ConfirmationDialog from "./ConfirmationDialog";
 
 interface Todo {
   id: string;
@@ -30,16 +28,16 @@ interface TodoListProps {
   todos: Todo[];
   onToggleTodo: (todoId: string) => void;
   onDeleteTodo: (todoId: string) => void;
-  onEditTodo: (todoId: string, updates: Partial<Todo>) => void;
   onCreateTodo: (todo: Omit<Todo, "id" | "createdAt">) => void;
+  onDeleteClick: (todoId: string, todoTitle: string) => void;
 }
 
 const TodoList: React.FC<TodoListProps> = ({
   todos,
   onToggleTodo,
   onDeleteTodo,
-  onEditTodo,
   onCreateTodo,
+  onDeleteClick,
 }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
@@ -48,15 +46,6 @@ const TodoList: React.FC<TodoListProps> = ({
   );
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean;
-    todoId: string | null;
-    todoTitle: string;
-  }>({
-    isOpen: false,
-    todoId: null,
-    todoTitle: "",
-  });
   const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
 
   const sortOptions = [
@@ -174,25 +163,6 @@ const TodoList: React.FC<TodoListProps> = ({
       new Date(dueDate) < new Date() &&
       new Date(dueDate).toDateString() !== new Date().toDateString()
     );
-  };
-
-  const handleDeleteClick = (todoId: string, todoTitle: string) => {
-    setDeleteConfirmation({
-      isOpen: true,
-      todoId,
-      todoTitle,
-    });
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.todoId) {
-      onDeleteTodo(deleteConfirmation.todoId);
-    }
-    setDeleteConfirmation({
-      isOpen: false,
-      todoId: null,
-      todoTitle: "",
-    });
   };
 
   const toggleExpanded = (todoId: string) => {
@@ -467,17 +437,7 @@ const TodoList: React.FC<TodoListProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onEditTodo(todo.id, { completed: !todo.completed });
-                      }}
-                      className="p-1 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-all duration-200"
-                      title="Edit todo"
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(todo.id, todo.title);
+                        onDeleteClick(todo.id, todo.title);
                       }}
                       className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
                       title="Delete todo"
@@ -583,17 +543,7 @@ const TodoList: React.FC<TodoListProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onEditTodo(todo.id, { completed: !todo.completed });
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded-lg transition-all duration-200"
-                      title="Edit todo"
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(todo.id, todo.title);
+                        onDeleteClick(todo.id, todo.title);
                       }}
                       className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
                       title="Delete todo"
@@ -613,24 +563,6 @@ const TodoList: React.FC<TodoListProps> = ({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onConfirm={onCreateTodo}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={deleteConfirmation.isOpen}
-        onClose={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            todoId: null,
-            todoTitle: "",
-          })
-        }
-        onConfirm={handleConfirmDelete}
-        title="Delete Todo"
-        message={`Are you sure you want to delete "${deleteConfirmation.todoTitle}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        type="danger"
       />
     </div>
   );

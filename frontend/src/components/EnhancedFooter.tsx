@@ -81,9 +81,9 @@ const EnhancedFooter: React.FC = () => {
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-t border-gray-800"
+      className="relative grain-texture royal-gradient border-t border-white/10"
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-8">
           {/* Brand Section */}
@@ -94,10 +94,10 @@ const EnhancedFooter: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
             >
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent mb-4">
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-6">
                 Taskify
               </h3>
-              <p className="text-gray-400 mb-6 leading-relaxed">
+              <p className="text-gray-300 mb-8 leading-relaxed text-lg font-light">
                 Your all-in-one productivity companion. Build habits, manage tasks, 
                 and boost focus with powerful tools designed for success.
               </p>
@@ -115,7 +115,7 @@ const EnhancedFooter: React.FC = () => {
                     transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
                     viewport={{ once: true }}
                     whileHover={{ scale: 1.1, y: -2 }}
-                    className="w-10 h-10 bg-gray-800/50 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/30"
+                    className="w-12 h-12 royal-card rounded-2xl flex items-center justify-center text-gray-300 hover:text-white hover:border-white/30 transition-all duration-300"
                   >
                     {social.icon}
                   </motion.a>
@@ -133,10 +133,10 @@ const EnhancedFooter: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.2 + sectionIndex * 0.1 }}
               viewport={{ once: true }}
             >
-              <h4 className="text-lg font-semibold text-white mb-4">
+              <h4 className="text-xl font-bold text-white mb-6">
                 {section.title}
               </h4>
-              <ul className="space-y-3">
+              <ul className="space-y-4">
                 {section.links.map((link, linkIndex) => (
                   <motion.li
                     key={link.name}
@@ -147,7 +147,7 @@ const EnhancedFooter: React.FC = () => {
                   >
                     <Link
                       to={link.href}
-                      className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                      className="text-gray-300 hover:text-white transition-colors duration-300 flex items-center gap-2 group text-base font-medium"
                     >
                       {link.name}
                       {link.href.startsWith('http') && (
@@ -167,22 +167,22 @@ const EnhancedFooter: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
-          className="border-t border-gray-800 pt-8 mb-8"
+          className="border-t border-white/10 pt-12 mb-12"
         >
-          <div className="text-center">
-            <h4 className="text-lg font-semibold text-white mb-2">
+          <div className="text-center royal-card rounded-3xl p-8 border border-white/10">
+            <h4 className="text-2xl font-bold text-white mb-4">
               Stay in the loop
             </h4>
-            <p className="text-gray-400 mb-4">
+            <p className="text-gray-300 mb-8 text-lg font-light">
               Get the latest productivity tips and updates delivered to your inbox.
             </p>
-            <div className="flex max-w-md mx-auto gap-3">
+            <div className="flex max-w-lg mx-auto gap-4">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/20 focus:outline-none"
+                className="flex-1 px-6 py-4 royal-card border border-white/20 rounded-2xl text-white placeholder:text-gray-400 focus:border-white/40 focus:ring-white/20 focus:outline-none text-lg"
               />
-              <button className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200">
+              <button className="px-8 py-4 pill-button pill-button-primary font-semibold text-lg">
                 Subscribe
               </button>
             </div>
@@ -195,25 +195,25 @@ const EnhancedFooter: React.FC = () => {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.5 }}
           viewport={{ once: true }}
-          className="border-t border-gray-800 pt-8"
+          className="border-t border-white/10 pt-8"
         >
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 text-gray-400">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-3 text-gray-300 text-lg">
               <span>© {currentYear} Taskify. All rights reserved.</span>
               <span>•</span>
               <span>Made with</span>
-              <Heart size={16} className="text-red-400 fill-current" />
+              <Heart size={18} className="text-red-400 fill-current" />
               <span>for productivity enthusiasts</span>
             </div>
             
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <Link to="/privacy" className="hover:text-white transition-colors">
+            <div className="flex items-center gap-8 text-base text-gray-300">
+              <Link to="/privacy" className="hover:text-white transition-colors duration-300 font-medium">
                 Privacy
               </Link>
-              <Link to="/terms" className="hover:text-white transition-colors">
+              <Link to="/terms" className="hover:text-white transition-colors duration-300 font-medium">
                 Terms
               </Link>
-              <Link to="/cookies" className="hover:text-white transition-colors">
+              <Link to="/cookies" className="hover:text-white transition-colors duration-300 font-medium">
                 Cookies
               </Link>
             </div>

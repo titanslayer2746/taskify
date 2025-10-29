@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import TodoList from "../components/TodoList";
 import Navbar from "../components/Navbar";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 import {
   CheckSquare,
   Clock,
@@ -20,6 +21,15 @@ const TodoPage = () => {
   const [optimisticUpdates, setOptimisticUpdates] = useState<Map<string, any>>(
     new Map()
   );
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    todoId: string | null;
+    todoTitle: string;
+  }>({
+    isOpen: false,
+    todoId: null,
+    todoTitle: "",
+  });
   const { user } = useAuth();
 
   // Fetch todos from API
@@ -241,6 +251,27 @@ const TodoPage = () => {
     }
   };
 
+  // Handle delete click - show confirmation dialog
+  const handleDeleteClick = (todoId: string, todoTitle: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      todoId,
+      todoTitle,
+    });
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.todoId) {
+      deleteTodo(deleteConfirmation.todoId);
+    }
+    setDeleteConfirmation({
+      isOpen: false,
+      todoId: null,
+      todoTitle: "",
+    });
+  };
+
   // Delete todo with optimistic update
   const deleteTodo = async (todoId: string) => {
     try {
@@ -347,12 +378,28 @@ const TodoPage = () => {
           todos={todos}
           onToggleTodo={toggleTodo}
           onDeleteTodo={deleteTodo}
-          onEditTodo={editTodo}
           onCreateTodo={createTodo}
-          isCreating={isCreating}
-          optimisticUpdates={optimisticUpdates}
+          onDeleteClick={handleDeleteClick}
         />
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            todoId: null,
+            todoTitle: "",
+          })
+        }
+        onConfirm={handleConfirmDelete}
+        title="Delete Todo"
+        message={`Are you sure you want to delete "${deleteConfirmation.todoTitle}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };
