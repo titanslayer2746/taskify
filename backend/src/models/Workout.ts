@@ -4,7 +4,7 @@ export interface IExercise extends Document {
   id: string;
   name: string;
   sets: number;
-  reps: number;
+  reps?: number;
   duration?: number; // in minutes
   notes?: string;
 }
@@ -73,7 +73,9 @@ const exerciseSchema = new Schema<IExercise>(
     },
     reps: {
       type: Number,
-      required: true,
+      required: function() {
+        return !this.duration || this.duration === 0;
+      },
       min: 1,
       max: 1000,
     },

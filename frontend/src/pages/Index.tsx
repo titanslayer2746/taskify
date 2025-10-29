@@ -313,7 +313,7 @@ const Index = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden"
+      className="min-h-screen grain-texture royal-gradient text-white overflow-hidden"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -321,50 +321,64 @@ const Index = () => {
       <LandingNavbar />
 
       {/* Hero Section */}
-      <div className="relative">
-        {/* Background Effects */}
+      <div className="relative min-h-screen flex items-center">
+        {/* Royal Background with Grain Texture */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        {/* Sophisticated Gradient Overlays */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10"
+          className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/15 to-emerald-900/20"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
+          transition={{ duration: 2 }}
         />
+        
+        {/* Royal Floating Orbs */}
         <motion.div
-          className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"
           variants={floatingVariants}
           animate="animate"
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 rounded-full blur-3xl"
           variants={floatingVariants}
           animate="animate"
           transition={{ delay: 1.5 }}
         />
+        <motion.div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"
+          variants={floatingVariants}
+          animate="animate"
+          transition={{ delay: 0.8 }}
+        />
 
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
           <motion.div
-            className="text-center max-w-4xl mx-auto"
+            className="text-center max-w-5xl mx-auto"
             variants={heroVariants}
           >
+            {/* Royal Badge */}
             <motion.div
-              className="flex items-center justify-center gap-2 mb-6"
+              className="flex items-center justify-center gap-2 mb-8"
               variants={itemVariants}
             >
-              <div className="flex items-center gap-1 bg-purple-500/20 px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm font-medium">Productivity Suite</span>
+              <div className="royal-card flex items-center gap-2 px-6 py-3 rounded-full border border-white/20">
+                <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                <span className="text-sm font-semibold text-white">Productivity Suite</span>
               </div>
             </motion.div>
 
+            {/* Royal Title */}
             <motion.h1
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent mb-6 tracking-tight leading-tight"
+              className="text-6xl sm:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-8 tracking-tight leading-tight"
               variants={itemVariants}
             >
               Taskify
             </motion.h1>
 
+            {/* Royal Subtitle */}
             <motion.p
-              className="text-xl sm:text-2xl text-gray-300 mb-6 max-w-4xl mx-auto leading-relaxed"
+              className="text-2xl sm:text-3xl text-gray-200 mb-8 max-w-5xl mx-auto leading-relaxed font-light"
               variants={itemVariants}
             >
               Your comprehensive productivity ecosystem. Transform your life
@@ -372,49 +386,49 @@ const Index = () => {
             </motion.p>
 
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12"
               variants={itemVariants}
             >
-              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-                <Target className="w-5 h-5 text-purple-400" />
-                <span className="text-gray-300 text-sm font-medium">
+              <div className="royal-card flex items-center gap-4 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                <Target className="w-6 h-6 text-purple-400" />
+                <span className="text-white text-base font-semibold">
                   Habit Tracking
                 </span>
               </div>
-              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-                <CheckSquare className="w-5 h-5 text-blue-400" />
-                <span className="text-gray-300 text-sm font-medium">
+              <div className="royal-card flex items-center gap-4 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                <CheckSquare className="w-6 h-6 text-blue-400" />
+                <span className="text-white text-base font-semibold">
                   Task Management
                 </span>
               </div>
-              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-                <Wallet className="w-5 h-5 text-amber-400" />
-                <span className="text-gray-300 text-sm font-medium">
+              <div className="royal-card flex items-center gap-4 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                <Wallet className="w-6 h-6 text-amber-400" />
+                <span className="text-white text-base font-semibold">
                   Finance Tracker
                 </span>
               </div>
-              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-                <BookOpen className="w-5 h-5 text-yellow-400" />
-                <span className="text-gray-300 text-sm font-medium">
+              <div className="royal-card flex items-center gap-4 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                <BookOpen className="w-6 h-6 text-yellow-400" />
+                <span className="text-white text-base font-semibold">
                   Journal
                 </span>
               </div>
-              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-                <Heart className="w-5 h-5 text-red-400" />
-                <span className="text-gray-300 text-sm font-medium">
+              <div className="royal-card flex items-center gap-4 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                <Heart className="w-6 h-6 text-red-400" />
+                <span className="text-white text-base font-semibold">
                   Health & Wellness
                 </span>
               </div>
-              <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-                <Moon className="w-5 h-5 text-cyan-400" />
-                <span className="text-gray-300 text-sm font-medium">
+              <div className="royal-card flex items-center gap-4 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105">
+                <Moon className="w-6 h-6 text-cyan-400" />
+                <span className="text-white text-base font-semibold">
                   Sleep Tracker
                 </span>
               </div>
             </motion.div>
 
             <motion.p
-              className="text-lg text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed"
+              className="text-xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed font-light"
               variants={itemVariants}
             >
               Build lasting habits, manage finances, track health, boost
@@ -423,43 +437,38 @@ const Index = () => {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
               variants={itemVariants}
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3 }}
                 className="w-full sm:w-auto"
               >
                 <Link
                   to="/habits"
-                  className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50 block text-center"
+                  className="group pill-button pill-button-primary flex items-center justify-center gap-3 text-lg font-semibold"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center justify-center gap-2">
-                    <Target size={24} />
-                    Get Started
-                    <ArrowRight
-                      size={20}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
-                  </div>
+                  <Target size={24} />
+                  Get Started
+                  <ArrowRight
+                    size={20}
+                    className="group-hover:translate-x-1 transition-transform duration-300"
+                  />
                 </Link>
               </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3 }}
                 className="w-full sm:w-auto"
               >
                 <Link
                   to="/pomodoro"
-                  className="group relative px-8 py-4 bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-gray-500/25 focus:outline-none focus:ring-4 focus:ring-gray-500/50 border border-gray-600 block text-center"
+                  className="group pill-button pill-button-secondary flex items-center justify-center gap-3 text-lg font-semibold"
                 >
-                  <div className="relative flex items-center justify-center gap-2">
-                    <Play size={20} />
-                    Try Pomodoro
-                  </div>
+                  <Play size={20} />
+                  Try Pomodoro
                 </Link>
               </motion.div>
             </motion.div>
@@ -468,23 +477,26 @@ const Index = () => {
       </div>
 
       {/* Features Section */}
-      <div className="py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 sm:py-24 relative">
+        {/* Royal Background */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Everything you need to
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                 {" "}
                 stay productive
               </span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xl max-w-3xl mx-auto font-light">
               Seven powerful tools working together to help you achieve your
               goals and build better habits.
             </p>
@@ -506,21 +518,21 @@ const Index = () => {
               >
                 <Link
                   to={feature.route}
-                  className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/30 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:border-purple-500/30 block"
+                  className="group relative royal-card rounded-3xl p-8 border border-white/10 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 hover:border-white/20 hover:scale-105 block"
                 >
                   <motion.div
-                    className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+                    className={`w-20 h-20 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
                     whileHover={{ rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
                     {feature.icon}
                   </motion.div>
-                  <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed mb-6">
+                  <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
+                  <p className="text-gray-300 leading-relaxed mb-6">
                     {feature.description}
                   </p>
                   <motion.div
-                    className="flex items-center text-purple-400 font-medium group-hover:translate-x-2 transition-transform duration-300"
+                    className="flex items-center text-white font-semibold group-hover:translate-x-2 transition-transform duration-300"
                     whileHover={{ x: 5 }}
                   >
                     Explore <ArrowRight size={16} className="ml-2" />
@@ -533,23 +545,26 @@ const Index = () => {
       </div>
 
       {/* Benefits Section */}
-      <div className="py-16 sm:py-20 bg-gradient-to-r from-gray-800/30 to-gray-900/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 sm:py-24 relative">
+        {/* Royal Background */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Why choose
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                 {" "}
                 Taskify?
               </span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xl max-w-3xl mx-auto font-light">
               Built with modern design and powerful features to help you stay on
               track and achieve your goals.
             </p>
@@ -565,20 +580,20 @@ const Index = () => {
             {benefits.map((benefit, index) => (
               <motion.div
                 key={index}
-                className="text-center group"
+                className="text-center group royal-card rounded-3xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105"
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.3 }}
               >
                 <motion.div
-                  className="w-16 h-16 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300"
+                  className="w-20 h-20 bg-gradient-to-r from-purple-500/30 via-blue-500/30 to-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300"
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
                 >
                   {benefit.icon}
                 </motion.div>
-                <h3 className="text-xl font-bold mb-3">{benefit.title}</h3>
-                <p className="text-gray-400 leading-relaxed">
+                <h3 className="text-xl font-bold mb-3 text-white">{benefit.title}</h3>
+                <p className="text-gray-300 leading-relaxed">
                   {benefit.description}
                 </p>
               </motion.div>
@@ -588,23 +603,26 @@ const Index = () => {
       </div>
 
       {/* Testimonials Section */}
-      <div className="py-16 sm:py-20 bg-gradient-to-r from-gray-800/30 to-gray-900/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 sm:py-24 relative">
+        {/* Royal Background */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Loved by{" "}
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                 thousands
               </span>{" "}
               of users
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xl max-w-3xl mx-auto font-light">
               See how Taskify is helping people transform their productivity and
               achieve their goals.
             </p>
@@ -624,47 +642,50 @@ const Index = () => {
 
           {/* Overall Rating */}
           <motion.div
-            className="text-center mt-12"
+            className="text-center mt-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full px-6 py-3 border border-purple-500/20">
+            <div className="royal-card inline-flex items-center gap-6 rounded-full px-8 py-4 border border-white/20">
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    size={20}
+                    size={24}
                     className="text-yellow-400 fill-current"
                   />
                 ))}
               </div>
-              <span className="text-white font-semibold">4.9/5</span>
-              <span className="text-gray-400">from 2,500+ reviews</span>
+              <span className="text-white font-bold text-lg">4.9/5</span>
+              <span className="text-gray-300">from 2,500+ reviews</span>
             </div>
           </motion.div>
         </div>
       </div>
 
       {/* Statistics Section */}
-      <div className="py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 sm:py-24 relative">
+        {/* Royal Background */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Trusted by{" "}
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                 millions
               </span>{" "}
               worldwide
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xl max-w-3xl mx-auto font-light">
               Our platform has helped users achieve remarkable results and build
               lasting habits.
             </p>
@@ -692,26 +713,26 @@ const Index = () => {
 
           {/* Additional Context */}
           <motion.div
-            className="text-center mt-12"
+            className="text-center mt-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full px-8 py-4 border border-purple-500/20">
+            <div className="royal-card inline-flex items-center gap-8 rounded-full px-10 py-6 border border-white/20">
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">99.9%</div>
-                <div className="text-sm text-gray-400">Uptime</div>
+                <div className="text-3xl font-bold text-purple-400">99.9%</div>
+                <div className="text-sm text-gray-300 font-medium">Uptime</div>
               </div>
-              <div className="w-px h-8 bg-gray-600"></div>
+              <div className="w-px h-10 bg-gray-500"></div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">24/7</div>
-                <div className="text-sm text-gray-400">Support</div>
+                <div className="text-3xl font-bold text-blue-400">24/7</div>
+                <div className="text-sm text-gray-300 font-medium">Support</div>
               </div>
-              <div className="w-px h-8 bg-gray-600"></div>
+              <div className="w-px h-10 bg-gray-500"></div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-400">50+</div>
-                <div className="text-sm text-gray-400">Countries</div>
+                <div className="text-3xl font-bold text-emerald-400">50+</div>
+                <div className="text-sm text-gray-300 font-medium">Countries</div>
               </div>
             </div>
           </motion.div>
@@ -719,29 +740,32 @@ const Index = () => {
       </div>
 
       {/* FAQ Section */}
-      <div className="py-16 sm:py-20 bg-gradient-to-r from-gray-800/30 to-gray-900/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 sm:py-24 relative">
+        {/* Royal Background */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Frequently Asked{" "}
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                 Questions
               </span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xl max-w-3xl mx-auto font-light">
               Everything you need to know about Taskify. Can't find the answer
               you're looking for? Please chat to our friendly team.
             </p>
           </motion.div>
 
           <motion.div
-            className="max-w-4xl mx-auto"
+            className="max-w-4xl mx-auto royal-card rounded-3xl p-8 border border-white/10"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -752,17 +776,17 @@ const Index = () => {
 
           {/* Contact CTA */}
           <motion.div
-            className="text-center mt-12"
+            className="text-center mt-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full px-6 py-3 border border-purple-500/20">
-              <span className="text-gray-300">Still have questions?</span>
+            <div className="royal-card inline-flex items-center gap-6 rounded-full px-8 py-4 border border-white/20">
+              <span className="text-gray-300 font-medium">Still have questions?</span>
               <Link
                 to="/contact"
-                className="text-purple-400 hover:text-purple-300 font-medium transition-colors duration-200"
+                className="text-white hover:text-gray-200 font-semibold transition-colors duration-200"
               >
                 Contact our support team
               </Link>
@@ -772,8 +796,11 @@ const Index = () => {
       </div>
 
       {/* CTA Section */}
-      <div className="py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-20 sm:py-24 relative">
+        {/* Royal Background */}
+        <div className="absolute inset-0 grain-texture royal-gradient"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div
             className="text-center"
             initial={{ opacity: 0, y: 30 }}
@@ -781,34 +808,31 @@ const Index = () => {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-8 text-white">
               Ready to transform your
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                 {" "}
                 productivity?
               </span>
             </h2>
-            <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
+            <p className="text-gray-300 text-xl mb-12 max-w-3xl mx-auto font-light">
               Start building better habits, managing tasks efficiently, and
               staying focused with our powerful tools.
             </p>
             <motion.div
               whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3 }}
             >
               <Link
                 to="/habits"
-                className="group relative inline-flex px-8 py-4 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50"
+                className="group pill-button pill-button-primary flex items-center justify-center gap-3 text-xl font-semibold mx-auto"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-2">
-                  <Target size={24} />
-                  Start Your Journey
-                  <ArrowRight
-                    size={20}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </div>
+                <Target size={28} />
+                Start Your Journey
+                <ArrowRight
+                  size={24}
+                  className="group-hover:translate-x-1 transition-transform duration-300"
+                />
               </Link>
             </motion.div>
           </motion.div>
