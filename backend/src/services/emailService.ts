@@ -1,22 +1,21 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
-export const transporter = nodemailer.createTransport({
-  service: "gmail",
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false, // For self-signed certificates
-  },
-  // Connection timeout settings
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 5000, // 5 seconds
-  socketTimeout: 10000, // 10 seconds
-});
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || "";
+const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_USER || "";
+
+if (!SENDGRID_API_KEY) {
+  console.warn(
+    "[emailService] SENDGRID_API_KEY is not set; emails will fail to send."
+  );
+}
+
+if (!SENDGRID_FROM) {
+  console.warn(
+    "[emailService] SENDGRID_FROM is not set; using empty 'from' will fail."
+  );
+}
+
+sgMail.setApiKey(SENDGRID_API_KEY);
 
 export async function sendEmail(
   to: string,
@@ -24,8 +23,8 @@ export async function sendEmail(
   text: string,
   html?: string
 ) {
-  await transporter.sendMail({
-    from: process.env.SMTP_USER,
+  await sgMail.send({
+    from: SENDGRID_FROM,
     to,
     subject,
     text,

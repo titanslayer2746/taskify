@@ -83,3 +83,16 @@ If you encounter CORS errors:
 2. Verify the environment variables are set correctly
 3. Ensure the backend is running with the correct environment
 4. Check the browser console for detailed error messages
+
+## Email (SendGrid) Configuration
+
+1. Set the following environment variables (see `env.example`):
+
+   ```bash
+   SENDGRID_API_KEY=your-sendgrid-api-key
+   SENDGRID_FROM="Taskify <no-reply@yourdomain.com>"
+   ```
+
+2. Ensure your SendGrid sender identity/domain is verified for the `SENDGRID_FROM` address.
+
+3. The backend uses SendGrid to send OTP and password reset emails via `src/services/emailService.ts`.
