@@ -7,10 +7,7 @@ import FinanceDashboard from "../components/FinanceDashboard";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
-import {
-  FinanceEntry,
-  CreateFinanceData,
-} from "../services/types";
+import { FinanceEntry, CreateFinanceData } from "../services/types";
 import {
   Plus,
   TrendingUp,
@@ -21,15 +18,35 @@ import {
 } from "lucide-react";
 
 const Finance = () => {
+  type FinancePagination = {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+
   const [entries, setEntries] = useState<FinanceEntry[]>([]);
+  const [analyticsEntries, setAnalyticsEntries] = useState<FinanceEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [entryToCopy, setEntryToCopy] = useState<FinanceEntry | null>(null);
   const [filterType, setFilterType] = useState<"all" | "income" | "expense">(
-    "all"
+    "all",
   );
   const [sortBy, setSortBy] = useState<"date" | "amount" | "title">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [pagination, setPagination] = useState<FinancePagination>({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: false,
+  });
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     entryId: string | null;
@@ -42,29 +59,100 @@ const Finance = () => {
 
   // API hooks
   const fetchEntries = useApi(apiService.getFinanceEntries);
+  const fetchAnalyticsEntries = useApi(apiService.getFinanceEntries);
   const createEntry = useApi(apiService.createFinanceEntry);
   const deleteEntry = useApi(apiService.deleteFinanceEntry);
+
+  const applyPagination = (
+    incoming: Partial<FinancePagination> | undefined,
+    fallbackCount: number,
+  ) => {
+    if (incoming) {
+      const page = incoming.page ?? currentPage;
+      const limit = incoming.limit ?? pageSize;
+      const total = incoming.total ?? fallbackCount;
+      const totalPages =
+        incoming.totalPages ?? Math.max(1, Math.ceil(total / limit));
+
+      setPagination({
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: incoming.hasNext ?? page < totalPages,
+        hasPrev: incoming.hasPrev ?? page > 1,
+      });
+      return;
+    }
+
+    setPagination({
+      page: 1,
+      limit: fallbackCount || pageSize,
+      total: fallbackCount,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    });
+  };
 
   const loadEntries = async () => {
     const params = {
       type: filterType === "all" ? undefined : filterType,
       sortBy,
       sortOrder,
+      page: currentPage,
+      limit: pageSize,
     };
 
     const result = await fetchEntries.execute(params);
-    if (result?.data?.entries) {
-      setEntries(result.data.entries);
+    if (result?.data) {
+      const payload = result.data as any;
+      const nextEntries = Array.isArray(payload.entries)
+        ? payload.entries
+        : Array.isArray(payload.data)
+          ? payload.data
+          : [];
+
+      setEntries(nextEntries);
+      applyPagination(payload.pagination, nextEntries.length);
+      return;
     }
+
+    setEntries([]);
+    applyPagination(undefined, 0);
+  };
+
+  const loadAnalyticsEntries = async () => {
+    const result = await fetchAnalyticsEntries.execute({
+      sortBy: "date",
+      sortOrder: "desc",
+    });
+
+    if (result?.data) {
+      const payload = result.data as any;
+      const nextEntries = Array.isArray(payload.entries)
+        ? payload.entries
+        : Array.isArray(payload.data)
+        ? payload.data
+        : [];
+      setAnalyticsEntries(nextEntries);
+      return;
+    }
+
+    setAnalyticsEntries([]);
   };
 
   // Fetch entries on component mount and whenever server-side filters/sort change
   useEffect(() => {
     loadEntries();
-  }, [filterType, sortBy, sortOrder]);
+  }, [filterType, sortBy, sortOrder, currentPage, pageSize]);
+
+  useEffect(() => {
+    loadAnalyticsEntries();
+  }, []);
 
   const addEntry = async (
-    entryData: Omit<FinanceEntry, "id" | "createdAt" | "updatedAt">
+    entryData: Omit<FinanceEntry, "id" | "createdAt" | "updatedAt">,
   ) => {
     const createData: CreateFinanceData = {
       title: entryData.title,
@@ -79,6 +167,7 @@ const Finance = () => {
     const result = await createEntry.execute(createData);
     if (result?.data?.entry) {
       await loadEntries();
+      await loadAnalyticsEntries();
       setIsModalOpen(false);
       setEntryToCopy(null);
     }
@@ -97,6 +186,7 @@ const Finance = () => {
       const result = await deleteEntry.execute(deleteConfirmation.entryId);
       if (result) {
         await loadEntries();
+        await loadAnalyticsEntries();
       }
     }
     setDeleteConfirmation({
@@ -116,11 +206,11 @@ const Finance = () => {
     setEntryToCopy(null);
   };
 
-  const totalIncome = entries
+  const totalIncome = analyticsEntries
     .filter((entry) => entry.type === "income")
     .reduce((sum, entry) => sum + entry.amount, 0);
 
-  const totalExpenses = entries
+  const totalExpenses = analyticsEntries
     .filter((entry) => entry.type === "expense")
     .reduce((sum, entry) => sum + entry.amount, 0);
 
@@ -165,7 +255,10 @@ const Finance = () => {
               {(["all", "income", "expense"] as const).map((type) => (
                 <button
                   key={type}
-                  onClick={() => setFilterType(type)}
+                  onClick={() => {
+                    setFilterType(type);
+                    setCurrentPage(1);
+                  }}
                   className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${
                     filterType === type
                       ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg"
@@ -183,9 +276,10 @@ const Finance = () => {
               <div className="relative">
                 <select
                   value={sortBy}
-                  onChange={(e) =>
-                    setSortBy(e.target.value as "date" | "amount" | "title")
-                  }
+                  onChange={(e) => {
+                    setSortBy(e.target.value as "date" | "amount" | "title");
+                    setCurrentPage(1);
+                  }}
                   className="appearance-none bg-gray-800/50 border border-gray-700/30 rounded-lg px-4 py-2 pr-10 text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 hover:bg-gray-700/50 hover:border-gray-600/50 cursor-pointer"
                 >
                   <option value="date" className="bg-gray-800 text-gray-300">
@@ -217,9 +311,10 @@ const Finance = () => {
 
               {/* Sort Order Toggle */}
               <button
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
+                onClick={() => {
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  setCurrentPage(1);
+                }}
                 className="p-2 bg-gray-800/50 border border-gray-700/30 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700/50 hover:border-gray-600/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500"
                 title={`Sort ${
                   sortOrder === "asc" ? "Descending" : "Ascending"
@@ -301,6 +396,27 @@ const Finance = () => {
                   )}
                 </svg>
               </button>
+
+              <div className="relative">
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="appearance-none bg-gray-800/50 border border-gray-700/30 rounded-lg px-3 py-2 pr-8 text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 hover:bg-gray-700/50 hover:border-gray-600/50 cursor-pointer"
+                >
+                  {[10, 20, 50].map((size) => (
+                    <option
+                      key={size}
+                      value={size}
+                      className="bg-gray-800 text-gray-300"
+                    >
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -395,15 +511,48 @@ const Finance = () => {
                 </button>
               </div>
             ) : (
-              entries.map((entry) => (
-                <FinanceCard
-                  key={entry.id}
-                  entry={entry}
-                  onDelete={(id) => handleDeleteClick(id, entry.title)}
-                  onCopy={copyEntry}
-                  getCategoryIcon={getCategoryIcon}
-                />
-              ))
+              <>
+                {entries.map((entry) => (
+                  <FinanceCard
+                    key={entry.id}
+                    entry={entry}
+                    onDelete={(id) => handleDeleteClick(id, entry.title)}
+                    onCopy={copyEntry}
+                    getCategoryIcon={getCategoryIcon}
+                  />
+                ))}
+
+                <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gray-800/30 border border-gray-700/30 rounded-lg p-4">
+                  <p className="text-sm text-gray-400">
+                    Page {pagination.page} of {pagination.totalPages}
+                    {pagination.total > 0 ? ` (${pagination.total} total)` : ""}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={!pagination.hasPrev || fetchEntries.loading}
+                      className="px-3 py-2 rounded-md bg-gray-700/50 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-600/60 transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          pagination.totalPages > 0
+                            ? Math.min(pagination.totalPages, prev + 1)
+                            : prev + 1,
+                        )
+                      }
+                      disabled={!pagination.hasNext || fetchEntries.loading}
+                      className="px-3 py-2 rounded-md bg-gray-700/50 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-600/60 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
@@ -419,7 +568,7 @@ const Finance = () => {
       <FinanceDashboard
         isOpen={isDashboardOpen}
         onClose={() => setIsDashboardOpen(false)}
-        entries={entries}
+        entries={analyticsEntries}
       />
 
       {/* Delete Confirmation Dialog */}
