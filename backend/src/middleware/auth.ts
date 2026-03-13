@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "../models/User";
 
 // Extend the Request interface to include user property
 declare global {
@@ -37,24 +36,8 @@ export const authenticateToken = async (
       email: string;
     };
 
-    // Check if user still exists in database
-    const user = await User.findById(decoded.userId).select("-password");
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: "Account is deactivated",
-      });
-    }
-
-    // Add user info to request object
+    // Add trusted token claims to request object.
+    // This avoids a database read on every authenticated request.
     req.user = {
       userId: decoded.userId,
       email: decoded.email,
@@ -99,14 +82,10 @@ export const optionalAuth = async (
         token,
         process.env.JWT_SECRET || "your-secret-key"
       ) as { userId: string; email: string };
-
-      const user = await User.findById(decoded.userId).select("-password");
-      if (user && user.isActive) {
-        req.user = {
-          userId: decoded.userId,
-          email: decoded.email,
-        };
-      }
+      req.user = {
+        userId: decoded.userId,
+        email: decoded.email,
+      };
     }
 
     next();
