@@ -1,7 +1,7 @@
 import React from "react";
-import { Trash2, X, Copy } from "lucide-react";
+import { Trash2, Copy } from "lucide-react";
 import { motion } from "framer-motion";
-import type { FinanceCardProps, FinanceType } from "@/types/finance";
+import type { FinanceCardProps, FinanceType } from "@/services/types";
 
 const FinanceCard: React.FC<FinanceCardProps> = ({
   entry,

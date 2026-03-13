@@ -11,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { FinanceDashboardProps } from "@/types/finance";
+import type { FinanceDashboardProps } from "@/services/types";
 
 const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
   isOpen,

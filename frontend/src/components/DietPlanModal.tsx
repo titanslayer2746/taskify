@@ -1,41 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Plus, Trash2, Utensils, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Food {
-  id: string;
-  name: string;
-  quantity: string;
-  calories: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-}
-
-interface Meal {
-  id: string;
-  name: string;
-  type: "breakfast" | "lunch" | "dinner" | "snack";
-  foods: Food[];
-  calories: number;
-  notes?: string;
-}
-
-interface DietPlan {
-  id: string;
-  name: string;
-  description: string;
-  meals: Meal[];
-  duration: number;
-  createdAt: string;
-}
-
-interface DietPlanModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (plan: DietPlan) => void;
-  plan?: DietPlan | null;
-}
+import type { DietPlan, DietPlanModalProps, Meal } from "@/services/types";
 
 const mealTypeOptions = [
   { value: "breakfast", label: "Breakfast", icon: "🌅" },

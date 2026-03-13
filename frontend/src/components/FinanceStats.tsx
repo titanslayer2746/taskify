@@ -1,6 +1,6 @@
 import React from "react";
 import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
-import type { FinanceStatsProps } from "@/types/finance";
+import type { FinanceStatsProps } from "@/services/types";
 
 const FinanceStats: React.FC<FinanceStatsProps> = ({
   balance,

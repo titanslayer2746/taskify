@@ -8,14 +8,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { JournalEntry } from "@/services/types";
-
-interface JournalCardProps {
-  entry: JournalEntry;
-  onDelete: (id: string) => void;
-  onView: () => void;
-  isOptimistic?: boolean;
-}
+import type { JournalCardProps } from "@/services/types";
 
 const JournalCard: React.FC<JournalCardProps> = ({
   entry,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { FinanceModalProps } from "@/types/finance";
+import type { FinanceModalProps } from "@/services/types";
 
 const FinanceModal: React.FC<FinanceModalProps> = ({
   isOpen,

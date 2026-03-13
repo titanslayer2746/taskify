@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { X, Loader2 } from "lucide-react";
-
-interface CreateHabitModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (name: string) => void;
-  isLoading?: boolean;
-}
+import type { CreateHabitModalProps } from "@/services/types";
 
 const CreateHabitModal: React.FC<CreateHabitModalProps> = ({
   isOpen,

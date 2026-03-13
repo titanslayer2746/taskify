@@ -7,8 +7,7 @@ import FinanceDashboard from "../components/FinanceDashboard";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
-import { CreateFinanceData } from "../services/types";
-import { FinanceEntry, FinancePagination } from "@/types/finance";
+import { CreateFinanceData, FinanceEntry, FinancePagination } from "../services/types";
 import {
   Plus,
   TrendingUp,
