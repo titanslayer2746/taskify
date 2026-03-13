@@ -10,7 +10,6 @@ import { useApi } from "../hooks/useApi";
 import {
   FinanceEntry,
   CreateFinanceData,
-  UpdateFinanceData,
 } from "../services/types";
 import {
   Plus,
@@ -19,8 +18,6 @@ import {
   Wallet,
   PiggyBank,
   BarChart3,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 
 const Finance = () => {
@@ -46,20 +43,25 @@ const Finance = () => {
   // API hooks
   const fetchEntries = useApi(apiService.getFinanceEntries);
   const createEntry = useApi(apiService.createFinanceEntry);
-  const updateEntry = useApi(apiService.updateFinanceEntry);
   const deleteEntry = useApi(apiService.deleteFinanceEntry);
 
-  // Fetch entries on component mount
-  useEffect(() => {
-    loadEntries();
-  }, []);
-
   const loadEntries = async () => {
-    const result = await fetchEntries.execute();
+    const params = {
+      type: filterType === "all" ? undefined : filterType,
+      sortBy,
+      sortOrder,
+    };
+
+    const result = await fetchEntries.execute(params);
     if (result?.data?.entries) {
       setEntries(result.data.entries);
     }
   };
+
+  // Fetch entries on component mount and whenever server-side filters/sort change
+  useEffect(() => {
+    loadEntries();
+  }, [filterType, sortBy, sortOrder]);
 
   const addEntry = async (
     entryData: Omit<FinanceEntry, "id" | "createdAt" | "updatedAt">
@@ -76,7 +78,7 @@ const Finance = () => {
 
     const result = await createEntry.execute(createData);
     if (result?.data?.entry) {
-      setEntries([result.data.entry, ...entries]);
+      await loadEntries();
       setIsModalOpen(false);
       setEntryToCopy(null);
     }
@@ -94,9 +96,7 @@ const Finance = () => {
     if (deleteConfirmation.entryId) {
       const result = await deleteEntry.execute(deleteConfirmation.entryId);
       if (result) {
-        setEntries(
-          entries.filter((entry) => entry.id !== deleteConfirmation.entryId)
-        );
+        await loadEntries();
       }
     }
     setDeleteConfirmation({
@@ -115,28 +115,6 @@ const Finance = () => {
     setIsModalOpen(false);
     setEntryToCopy(null);
   };
-
-  const filteredAndSortedEntries = entries
-    .filter((entry) => filterType === "all" || entry.type === filterType)
-    .sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case "date":
-          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
-          break;
-        case "amount":
-          comparison = a.amount - b.amount;
-          break;
-        case "title":
-          comparison = a.title.localeCompare(b.title);
-          break;
-        default:
-          comparison = 0;
-      }
-
-      return sortOrder === "desc" ? -comparison : comparison;
-    });
 
   const totalIncome = entries
     .filter((entry) => entry.type === "income")
@@ -395,7 +373,7 @@ const Finance = () => {
         {/* Entries List */}
         {!fetchEntries.loading && !fetchEntries.error && (
           <div className="space-y-4">
-            {filteredAndSortedEntries.length === 0 ? (
+            {entries.length === 0 ? (
               <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
                 <div className="w-24 h-24 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-full flex items-center justify-center mb-6">
                   <PiggyBank className="w-12 h-12 text-emerald-400" />
@@ -417,7 +395,7 @@ const Finance = () => {
                 </button>
               </div>
             ) : (
-              filteredAndSortedEntries.map((entry) => (
+              entries.map((entry) => (
                 <FinanceCard
                   key={entry.id}
                   entry={entry}
