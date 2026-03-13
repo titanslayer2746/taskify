@@ -110,11 +110,27 @@ const Finance = () => {
       const nextEntries = Array.isArray(payload.entries)
         ? payload.entries
         : Array.isArray(payload.data)
-          ? payload.data
-          : [];
+        ? payload.data
+        : [];
+
+      const incomingPagination = payload.pagination as
+        | Partial<FinancePagination>
+        | undefined;
+      const incomingTotalPages = incomingPagination?.totalPages ?? 1;
+
+      // If current page is now out of range (e.g. deleting last item on last page),
+      // jump to the last valid page and let the effect refetch.
+      if (
+        incomingPagination &&
+        currentPage > incomingTotalPages &&
+        incomingTotalPages >= 1
+      ) {
+        setCurrentPage(incomingTotalPages);
+        return;
+      }
 
       setEntries(nextEntries);
-      applyPagination(payload.pagination, nextEntries.length);
+      applyPagination(incomingPagination, nextEntries.length);
       return;
     }
 
