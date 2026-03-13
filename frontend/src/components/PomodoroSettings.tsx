@@ -1,23 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-
-interface PomodoroSettingsProps {
-  isOpen: boolean;
-  onClose: () => void;
-  settings: {
-    workTime: number;
-    breakTime: number;
-    longBreakTime: number;
-    longBreakInterval: number;
-  };
-  onSettingsChange: (settings: {
-    workTime: number;
-    breakTime: number;
-    longBreakTime: number;
-    longBreakInterval: number;
-  }) => void;
-}
+import { motion } from "framer-motion";
+import type { PomodoroSettingsProps } from "@/services/types";
 
 const PomodoroSettings: React.FC<PomodoroSettingsProps> = ({
   isOpen,

@@ -8,6 +8,7 @@ import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
 import { useToast } from "../hooks/use-toast";
 import { Button } from "../components/ui/button";
+import type { DietPlan, WorkoutPlan } from "@/services/types";
 import {
   Dumbbell,
   Utensils,
@@ -18,63 +19,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface WorkoutPlan {
-  id: string;
-  name: string;
-  description: string;
-  exercises: Exercise[];
-  weeklySchedule: WeeklySchedule;
-  duration: number; // in weeks
-  createdAt: string;
-}
-
-interface Exercise {
-  id: string;
-  name: string;
-  sets: number;
-  reps: number;
-  duration?: number; // in minutes
-  notes?: string;
-}
-
-interface WeeklySchedule {
-  sunday: string[];
-  monday: string[];
-  tuesday: string[];
-  wednesday: string[];
-  thursday: string[];
-  friday: string[];
-  saturday: string[];
-}
-
-interface DietPlan {
-  id: string;
-  name: string;
-  description: string;
-  meals: Meal[];
-  duration: number; // in weeks
-  createdAt: string;
-}
-
-interface Meal {
-  id: string;
-  name: string;
-  type: "breakfast" | "lunch" | "dinner" | "snack";
-  foods: Food[];
-  calories: number;
-  notes?: string;
-}
-
-interface Food {
-  id: string;
-  name: string;
-  quantity: string;
-  calories: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-}
 
 const Health = () => {
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);

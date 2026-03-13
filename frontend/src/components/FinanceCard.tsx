@@ -1,24 +1,7 @@
 import React from "react";
-import { Trash2, X, Copy } from "lucide-react";
+import { Trash2, Copy } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface FinanceEntry {
-  id: string;
-  title: string;
-  amount: number;
-  type: "income" | "expense";
-  category: string;
-  tags: string[];
-  date: string;
-  description?: string;
-}
-
-interface FinanceCardProps {
-  entry: FinanceEntry;
-  onDelete: (id: string) => void;
-  onCopy: (entry: FinanceEntry) => void;
-  getCategoryIcon: (category: string) => React.ReactNode;
-}
+import type { FinanceCardProps, FinanceType } from "@/services/types";
 
 const FinanceCard: React.FC<FinanceCardProps> = ({
   entry,
@@ -43,11 +26,11 @@ const FinanceCard: React.FC<FinanceCardProps> = ({
     });
   };
 
-  const getTypeColor = (type: "income" | "expense") => {
+  const getTypeColor = (type: FinanceType) => {
     return type === "income" ? "text-emerald-400" : "text-red-400";
   };
 
-  const getTypeBgColor = (type: "income" | "expense") => {
+  const getTypeBgColor = (type: FinanceType) => {
     return type === "income"
       ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20"
       : "bg-gradient-to-r from-red-500/20 to-pink-500/20";

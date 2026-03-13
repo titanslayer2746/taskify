@@ -14,33 +14,8 @@ import {
   Trash2,
 } from "lucide-react";
 import SleepChart from "./SleepChart";
-import { SleepEntry, CreateSleepData } from "../services/types";
+import type { SleepTrackerProps } from "../services/types";
 import { apiService } from "../services/api";
-
-interface SleepTrackerProps {
-  sleepEntries: SleepEntry[];
-  onAddSleepEntry: (entryData: {
-    checkIn: string;
-    checkOut?: string;
-    duration?: number;
-    notes?: string;
-    quality?: 1 | 2 | 3 | 4 | 5;
-    date: string;
-    isActive?: boolean;
-  }) => void;
-  onUpdateSleepEntry: (
-    entryId: string,
-    updateData: Partial<CreateSleepData>
-  ) => void;
-  onDeleteSleepEntry: (entryId: string) => void;
-  onAddJournalEntry: (entry: {
-    title: string;
-    content: string;
-    tags: string[];
-    date: string;
-  }) => void;
-  isLoading?: boolean;
-}
 
 const SleepTracker: React.FC<SleepTrackerProps> = ({
   sleepEntries,

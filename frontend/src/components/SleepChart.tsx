@@ -1,21 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, Calendar } from "lucide-react";
-
-interface SleepEntry {
-  id: string;
-  checkIn: string;
-  checkOut?: string; // Optional for active sessions
-  duration?: number; // Optional for active sessions
-  notes?: string;
-  quality?: 1 | 2 | 3 | 4 | 5;
-  date: string;
-  isActive?: boolean; // true if session is ongoing
-}
-
-interface SleepChartProps {
-  sleepEntries: SleepEntry[];
-}
+import type { SleepChartProps } from "@/services/types";
 
 const SleepChart: React.FC<SleepChartProps> = ({ sleepEntries }) => {
   // Safety check for undefined sleepEntries

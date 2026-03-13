@@ -3,11 +3,12 @@ import PomodoroTimer from "../components/PomodoroTimer";
 import PomodoroSettings from "../components/PomodoroSettings";
 import Navbar from "../components/Navbar";
 import { Clock, Settings } from "lucide-react";
+import type { PomodoroSettingsData } from "@/services/types";
 
 const Pomodoro = () => {
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<PomodoroSettingsData>({
     workTime: 25,
     breakTime: 5,
     longBreakTime: 15,

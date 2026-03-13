@@ -1,24 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface FinanceEntry {
-  id: string;
-  title: string;
-  amount: number;
-  type: "income" | "expense";
-  category: string;
-  tags: string[];
-  date: string;
-  description?: string;
-}
-
-interface FinanceModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (entry: Omit<FinanceEntry, "id">) => void;
-  copyFrom?: FinanceEntry | null;
-}
+import type { FinanceModalProps } from "@/services/types";
 
 const FinanceModal: React.FC<FinanceModalProps> = ({
   isOpen,

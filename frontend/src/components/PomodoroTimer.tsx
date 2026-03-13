@@ -1,29 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw, Settings, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-
-interface PomodoroTimerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  settings: {
-    workTime: number;
-    breakTime: number;
-    longBreakTime: number;
-    longBreakInterval: number;
-  };
-  onSettingsChange: (settings: {
-    workTime: number;
-    breakTime: number;
-    longBreakTime: number;
-    longBreakInterval: number;
-  }) => void;
-}
+import { Play, Pause, RotateCcw, X } from "lucide-react";
+import { motion } from "framer-motion";
+import type { PomodoroTimerProps } from "@/services/types";
 
 const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   isOpen,
   onClose,
   settings,
-  onSettingsChange,
 }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);

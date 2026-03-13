@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import SleepTracker from "../components/SleepTracker";
 import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
-import { SleepEntry, CreateSleepData } from "../services/types";
+import {
+  SleepEntry,
+  CreateSleepData,
+  SleepJournalEntryInput,
+} from "../services/types";
 
 const Sleep = () => {
   const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>([]);
-  const navigate = useNavigate();
 
   console.log(
     "Sleep component rendering, sleepEntries length:",
@@ -44,15 +46,7 @@ const Sleep = () => {
     }
   };
 
-  const handleAddSleepEntry = async (entryData: {
-    checkIn: string;
-    checkOut?: string;
-    duration?: number;
-    notes?: string;
-    quality?: 1 | 2 | 3 | 4 | 5;
-    date: string;
-    isActive?: boolean;
-  }) => {
+  const handleAddSleepEntry = async (entryData: CreateSleepData) => {
     try {
       const response = await createSleepEntry.execute(entryData);
       if (response.success && response.data) {
@@ -101,12 +95,7 @@ const Sleep = () => {
     }
   };
 
-  const handleAddJournalEntry = async (entry: {
-    title: string;
-    content: string;
-    tags: string[];
-    date: string;
-  }) => {
+  const handleAddJournalEntry = async (entry: SleepJournalEntryInput) => {
     try {
       await apiService.createJournalEntry(entry);
       // Optionally navigate to journal page or show success message

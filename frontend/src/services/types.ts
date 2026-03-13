@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 // API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -154,6 +156,20 @@ export interface HabitStats {
   completionRate: number;
 }
 
+export interface CreateHabitModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (name: string) => void;
+  isLoading?: boolean;
+}
+
+export interface HabitHeatmapProps {
+  habit: Habit;
+  onToggleCompletion: (habitId: string, date: string) => void;
+  onDelete: (habitId: string) => void;
+  isOptimistic?: boolean;
+}
+
 // Todo Types
 export interface Todo {
   id: string;
@@ -201,6 +217,22 @@ export interface TodoStats {
   averageCompletionTime: number;
 }
 
+export type TodoCreateInput = Omit<Todo, "id" | "createdAt" | "updatedAt">;
+
+export interface TodoListProps {
+  todos: Todo[];
+  onToggleTodo: (todoId: string) => void;
+  onDeleteTodo: (todoId: string) => void;
+  onCreateTodo: (todo: TodoCreateInput) => void;
+  onDeleteClick: (todoId: string, todoTitle: string) => void;
+}
+
+export interface CreateTodoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (todo: TodoCreateInput) => void;
+}
+
 // Journal Types
 export interface JournalEntry {
   id: string;
@@ -225,6 +257,28 @@ export interface UpdateJournalData {
   mood?: "happy" | "sad" | "neutral" | "excited" | "anxious";
   tags?: string[];
   isExplicitSave?: boolean;
+}
+
+export type JournalSaveHandler = (
+  id: string,
+  title: string,
+  content: string,
+  isExplicitSave?: boolean,
+  tags?: string[]
+) => void | Promise<void>;
+
+export interface JournalCardProps {
+  entry: JournalEntry;
+  onDelete: (id: string) => void;
+  onView: () => void;
+  isOptimistic?: boolean;
+}
+
+export interface JournalEditorProps {
+  entry: JournalEntry;
+  onSave: JournalSaveHandler;
+  onClose: () => void;
+  isOptimistic?: boolean;
 }
 
 // Finance Types
@@ -275,6 +329,48 @@ export interface FinanceStats {
   totalEntries: number;
 }
 
+export type FinanceType = FinanceEntry["type"];
+
+export interface FinanceCardProps {
+  entry: FinanceEntry;
+  onDelete: (id: string) => void;
+  onCopy: (entry: FinanceEntry) => void;
+  getCategoryIcon: (category: string) => ReactNode;
+}
+
+export type FinanceModalSubmitData = Omit<
+  FinanceEntry,
+  "id" | "createdAt" | "updatedAt"
+>;
+
+export interface FinanceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (entry: FinanceModalSubmitData) => void;
+  copyFrom?: FinanceEntry | null;
+}
+
+export interface FinanceDashboardProps {
+  isOpen: boolean;
+  onClose: () => void;
+  entries: FinanceEntry[];
+}
+
+export interface FinanceStatsProps {
+  balance: number;
+  totalIncome: number;
+  totalExpenses: number;
+}
+
+export interface FinancePagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 // Sleep Types
 export interface SleepEntry {
   id: string;
@@ -320,6 +416,29 @@ export interface SleepStats {
     duration: number;
     quality: number;
   }>;
+}
+
+export interface SleepChartProps {
+  sleepEntries: SleepEntry[];
+}
+
+export interface SleepJournalEntryInput {
+  title: string;
+  content: string;
+  tags: string[];
+  date: string;
+}
+
+export interface SleepTrackerProps {
+  sleepEntries: SleepEntry[];
+  onAddSleepEntry: (entryData: CreateSleepData) => void;
+  onUpdateSleepEntry: (
+    entryId: string,
+    updateData: Partial<CreateSleepData>
+  ) => void;
+  onDeleteSleepEntry: (entryId: string) => void;
+  onAddJournalEntry: (entry: SleepJournalEntryInput) => void;
+  isLoading?: boolean;
 }
 
 // Workout Types
@@ -394,6 +513,100 @@ export interface WorkoutStats {
     duration: number;
     calories: number;
   }>;
+}
+
+export interface Exercise {
+  id: string;
+  name: string;
+  sets: number;
+  reps: number;
+  duration?: number;
+  notes?: string;
+}
+
+export interface WeeklySchedule {
+  sunday: string[];
+  monday: string[];
+  tuesday: string[];
+  wednesday: string[];
+  thursday: string[];
+  friday: string[];
+  saturday: string[];
+}
+
+export interface WorkoutPlan {
+  id: string;
+  name: string;
+  description: string;
+  exercises: Exercise[];
+  weeklySchedule: WeeklySchedule;
+  duration: number;
+  createdAt: string;
+}
+
+export interface WorkoutPlanModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (plan: WorkoutPlan) => void;
+  plan?: WorkoutPlan | null;
+}
+
+export interface PomodoroSettingsData {
+  workTime: number;
+  breakTime: number;
+  longBreakTime: number;
+  longBreakInterval: number;
+}
+
+export interface PomodoroTimerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  settings: PomodoroSettingsData;
+  onSettingsChange: (settings: PomodoroSettingsData) => void;
+}
+
+export interface PomodoroSettingsProps {
+  isOpen: boolean;
+  onClose: () => void;
+  settings: PomodoroSettingsData;
+  onSettingsChange: (settings: PomodoroSettingsData) => void;
+}
+
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+
+export interface Food {
+  id: string;
+  name: string;
+  quantity: string;
+  calories: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+}
+
+export interface Meal {
+  id: string;
+  name: string;
+  type: MealType;
+  foods: Food[];
+  calories: number;
+  notes?: string;
+}
+
+export interface DietPlan {
+  id: string;
+  name: string;
+  description: string;
+  meals: Meal[];
+  duration: number;
+  createdAt: string;
+}
+
+export interface DietPlanModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (plan: DietPlan) => void;
+  plan?: DietPlan | null;
 }
 
 // Meal Types

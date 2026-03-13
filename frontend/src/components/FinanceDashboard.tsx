@@ -11,23 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-interface FinanceEntry {
-  id: string;
-  title: string;
-  amount: number;
-  type: "income" | "expense";
-  category: string;
-  tags: string[];
-  date: string;
-  description?: string;
-}
-
-interface FinanceDashboardProps {
-  isOpen: boolean;
-  onClose: () => void;
-  entries: FinanceEntry[];
-}
+import type { FinanceDashboardProps } from "@/services/types";
 
 const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
   isOpen,

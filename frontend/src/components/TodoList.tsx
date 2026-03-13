@@ -7,30 +7,14 @@ import {
   X,
   Calendar,
   Clock,
-  Star,
-  MoreVertical,
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Todo {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  priority: "low" | "medium" | "high";
-  dueDate?: string;
-  createdAt: string;
-  category?: string;
-}
-
-interface TodoListProps {
-  todos: Todo[];
-  onToggleTodo: (todoId: string) => void;
-  onDeleteTodo: (todoId: string) => void;
-  onCreateTodo: (todo: Omit<Todo, "id" | "createdAt">) => void;
-  onDeleteClick: (todoId: string, todoTitle: string) => void;
-}
+import type {
+  CreateTodoModalProps,
+  Todo,
+  TodoListProps,
+} from "@/services/types";
 
 const TodoList: React.FC<TodoListProps> = ({
   todos,
@@ -567,13 +551,6 @@ const TodoList: React.FC<TodoListProps> = ({
     </div>
   );
 };
-
-// Create Todo Modal Component
-interface CreateTodoModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (todo: Omit<Todo, "id" | "createdAt">) => void;
-}
 
 const CreateTodoModal: React.FC<CreateTodoModalProps> = ({
   isOpen,

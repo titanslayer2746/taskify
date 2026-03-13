@@ -8,14 +8,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Habit } from "@/services/types";
-
-interface HabitHeatmapProps {
-  habit: Habit;
-  onToggleCompletion: (habitId: string, date: string) => void;
-  onDelete: (habitId: string) => void;
-  isOptimistic?: boolean;
-}
+import type { HabitHeatmapProps } from "@/services/types";
 
 const HabitHeatmap: React.FC<HabitHeatmapProps> = ({
   habit,

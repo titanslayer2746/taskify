@@ -1,25 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BookOpen, AlertTriangle, X, Loader2, Save } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { JournalEntry } from "@/services/types";
-
-interface JournalEditorProps {
-  entry: JournalEntry;
-  onSave: (
-    id: string,
-    title: string,
-    content: string,
-    isExplicitSave?: boolean,
-    tags?: string[]
-  ) => void;
-  onClose: () => void;
-  isOptimistic?: boolean;
-}
+import { BookOpen, X, Loader2, Save } from "lucide-react";
+import { motion } from "framer-motion";
+import type { JournalEditorProps } from "@/services/types";
 
 const JournalEditor: React.FC<JournalEditorProps> = ({
   entry,
   onSave,
-  onClose,
   isOptimistic = false,
 }) => {
   const [title, setTitle] = useState(entry.title);

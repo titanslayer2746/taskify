@@ -3,48 +3,16 @@ import {
   X,
   Plus,
   Trash2,
-  Dumbbell,
   ArrowLeft,
   ArrowRight,
-  Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Exercise {
-  id: string;
-  name: string;
-  sets: number;
-  reps: number;
-  duration?: number;
-  notes?: string;
-}
-
-interface WeeklySchedule {
-  sunday: string[];
-  monday: string[];
-  tuesday: string[];
-  wednesday: string[];
-  thursday: string[];
-  friday: string[];
-  saturday: string[];
-}
-
-interface WorkoutPlan {
-  id: string;
-  name: string;
-  description: string;
-  exercises: Exercise[];
-  weeklySchedule: WeeklySchedule;
-  duration: number;
-  createdAt: string;
-}
-
-interface WorkoutPlanModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (plan: WorkoutPlan) => void;
-  plan?: WorkoutPlan | null;
-}
+import type {
+  Exercise,
+  WeeklySchedule,
+  WorkoutPlan,
+  WorkoutPlanModalProps,
+} from "@/services/types";
 
 const WorkoutPlanModal: React.FC<WorkoutPlanModalProps> = ({
   isOpen,
