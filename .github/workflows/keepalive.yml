@@ -1,0 +1,21 @@
+name: Keep Backend Awake
+
+on:
+  schedule:
+    # Every 10 minutes (UTC) to avoid Render free-tier inactivity sleep.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping backend health endpoint
+        run: |
+          curl --fail --silent --show-error \
+               --max-time 30 \
+               --retry 2 \
+               --retry-delay 5 \
+               "https://taskify-nler.onrender.com/api/health" > /dev/null
+
