@@ -154,7 +154,7 @@ export const createFinanceEntry = async (req: Request, res: Response) => {
 export const getFinanceEntries = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.userId;
-    const { type, category, tag, sortBy, sortOrder } = req.query;
+    const { type, category, tag, sortBy, sortOrder, page, limit } = req.query;
 
     if (!userId) {
       return res.status(401).json({
@@ -163,7 +163,7 @@ export const getFinanceEntries = async (req: Request, res: Response) => {
       });
     }
 
-    let query: any = { userId };
+    const query: Record<string, any> = { userId };
 
     // Add filters
     if (type && ["income", "expense"].includes(type as string)) {
@@ -179,7 +179,7 @@ export const getFinanceEntries = async (req: Request, res: Response) => {
     }
 
     // Build sort object
-    let sort: any = { createdAt: -1 }; // Default sort
+    let sort: Record<string, 1 | -1> = { createdAt: -1 }; // Default sort
     if (sortBy && typeof sortBy === "string") {
       const validSortFields = ["date", "amount", "title", "createdAt"];
       if (validSortFields.includes(sortBy)) {
@@ -187,10 +187,60 @@ export const getFinanceEntries = async (req: Request, res: Response) => {
       }
     }
 
-    const entries = await Finance.find(query).sort(sort).select("-__v");
+    const parsedPage =
+      typeof page === "string" && Number.isInteger(Number(page))
+        ? Number(page)
+        : undefined;
+    const parsedLimit =
+      typeof limit === "string" && Number.isInteger(Number(limit))
+        ? Number(limit)
+        : undefined;
+    const usePagination =
+      parsedPage !== undefined &&
+      parsedLimit !== undefined &&
+      parsedPage > 0 &&
+      parsedLimit > 0;
+
+    const projection = {
+      _id: 1,
+      title: 1,
+      amount: 1,
+      type: 1,
+      category: 1,
+      tags: 1,
+      date: 1,
+      description: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    };
+
+    let entries: any[] = [];
+    let total = 0;
+    let totalPages = 0;
+
+    if (usePagination) {
+      const safeLimit = Math.min(parsedLimit!, 100);
+      const skip = (parsedPage! - 1) * safeLimit;
+
+      const [docs, count] = await Promise.all([
+        Finance.find(query)
+          .sort(sort)
+          .skip(skip)
+          .limit(safeLimit)
+          .select(projection)
+          .lean(),
+        Finance.countDocuments(query),
+      ]);
+
+      entries = docs;
+      total = count;
+      totalPages = Math.max(1, Math.ceil(total / safeLimit));
+    } else {
+      entries = await Finance.find(query).sort(sort).select(projection).lean();
+    }
 
     const entriesResponse = entries.map((entry) => ({
-      id: entry._id,
+      id: entry._id.toString(),
       title: entry.title,
       amount: entry.amount,
       type: entry.type,
@@ -207,6 +257,18 @@ export const getFinanceEntries = async (req: Request, res: Response) => {
       message: "Finance entries retrieved successfully",
       data: {
         entries: entriesResponse,
+        ...(usePagination
+          ? {
+              pagination: {
+                page: parsedPage,
+                limit: Math.min(parsedLimit!, 100),
+                total,
+                totalPages,
+                hasNext: parsedPage! < totalPages,
+                hasPrev: parsedPage! > 1,
+              },
+            }
+          : {}),
       },
     });
   } catch (error) {
