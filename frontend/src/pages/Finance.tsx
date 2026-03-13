@@ -7,7 +7,8 @@ import FinanceDashboard from "../components/FinanceDashboard";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
-import { FinanceEntry, CreateFinanceData } from "../services/types";
+import { CreateFinanceData } from "../services/types";
+import { FinanceEntry, FinancePagination } from "@/types/finance";
 import {
   Plus,
   TrendingUp,
@@ -18,15 +19,6 @@ import {
 } from "lucide-react";
 
 const Finance = () => {
-  type FinancePagination = {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-
   const [entries, setEntries] = useState<FinanceEntry[]>([]);
   const [analyticsEntries, setAnalyticsEntries] = useState<FinanceEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
