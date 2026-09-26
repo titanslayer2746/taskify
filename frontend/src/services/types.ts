@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 // API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -9,40 +7,6 @@ export interface ApiResponse<T = any> {
     type: string;
     details: string;
     [key: string]: any;
-  };
-}
-
-// Generic API Response Wrappers
-export interface SingleItemResponse<T> {
-  data: T;
-}
-
-export interface ListResponse<T> {
-  data: T[];
-  total?: number;
-}
-
-export interface BulkResponse<T> {
-  data: T[];
-  successCount: number;
-  failureCount: number;
-  errors?: Array<{
-    index: number;
-    error: string;
-  }>;
-}
-
-// Health Check Response
-export interface HealthCheckResponse {
-  status: "healthy" | "unhealthy" | "degraded";
-  timestamp: string;
-  uptime: number;
-  version: string;
-  environment: string;
-  services: {
-    database: "healthy" | "unhealthy";
-    cache?: "healthy" | "unhealthy";
-    external?: "healthy" | "unhealthy";
   };
 }
 
@@ -84,32 +48,6 @@ export interface RefreshTokenResponse {
   expiresIn?: number;
 }
 
-export interface PasswordResetRequest {
-  email: string;
-}
-
-export interface PasswordResetConfirm {
-  token: string;
-  newPassword: string;
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-}
-
-export interface UserProfileUpdate {
-  name?: string;
-  email?: string;
-  avatar?: string;
-  preferences?: {
-    theme?: "light" | "dark" | "auto";
-    notifications?: boolean;
-    timezone?: string;
-    language?: string;
-  };
-}
-
 // Habit Types
 export interface Habit {
   id: string;
@@ -145,15 +83,6 @@ export interface UpdateHabitData {
 
 export interface ToggleCompletionData {
   date: string;
-}
-
-export interface HabitStats {
-  totalHabits: number;
-  activeHabits: number;
-  completedToday: number;
-  currentStreak: number;
-  longestStreak: number;
-  completionRate: number;
 }
 
 export interface CreateHabitModalProps {
@@ -208,21 +137,11 @@ export interface UpdateTodoData {
   actualTime?: number;
 }
 
-export interface TodoStats {
-  total: number;
-  completed: number;
-  pending: number;
-  overdue: number;
-  completionRate: number;
-  averageCompletionTime: number;
-}
-
-export type TodoCreateInput = Omit<Todo, "id" | "createdAt" | "updatedAt">;
+type TodoCreateInput = Omit<Todo, "id" | "createdAt" | "updatedAt">;
 
 export interface TodoListProps {
   todos: Todo[];
   onToggleTodo: (todoId: string) => void;
-  onDeleteTodo: (todoId: string) => void;
   onCreateTodo: (todo: TodoCreateInput) => void;
   onDeleteClick: (todoId: string, todoTitle: string) => void;
 }
@@ -259,14 +178,6 @@ export interface UpdateJournalData {
   isExplicitSave?: boolean;
 }
 
-export type JournalSaveHandler = (
-  id: string,
-  title: string,
-  content: string,
-  isExplicitSave?: boolean,
-  tags?: string[]
-) => void | Promise<void>;
-
 export interface JournalCardProps {
   entry: JournalEntry;
   onDelete: (id: string) => void;
@@ -274,10 +185,17 @@ export interface JournalCardProps {
   isOptimistic?: boolean;
 }
 
+type JournalSaveHandler = (
+  id: string,
+  title: string,
+  content: string,
+  isExplicitSave?: boolean,
+  tags?: string[]
+) => void | Promise<void>;
+
 export interface JournalEditorProps {
   entry: JournalEntry;
   onSave: JournalSaveHandler;
-  onClose: () => void;
   isOptimistic?: boolean;
 }
 
@@ -329,16 +247,13 @@ export interface FinanceStats {
   totalEntries: number;
 }
 
-export type FinanceType = FinanceEntry["type"];
-
 export interface FinanceCardProps {
   entry: FinanceEntry;
   onDelete: (id: string) => void;
   onCopy: (entry: FinanceEntry) => void;
-  getCategoryIcon: (category: string) => ReactNode;
 }
 
-export type FinanceModalSubmitData = Omit<
+type FinanceModalSubmitData = Omit<
   FinanceEntry,
   "id" | "createdAt" | "updatedAt"
 >;
@@ -351,8 +266,6 @@ export interface FinanceModalProps {
 }
 
 export interface FinanceDashboardProps {
-  isOpen: boolean;
-  onClose: () => void;
   entries: FinanceEntry[];
 }
 
@@ -499,22 +412,6 @@ export interface UpdateWorkoutData {
   location?: string;
 }
 
-export interface WorkoutStats {
-  totalWorkouts: number;
-  totalDuration: number;
-  totalCalories: number;
-  averageDuration: number;
-  favoriteType: string;
-  weeklyGoal: number;
-  weeklyProgress: number;
-  monthlyTrend: Array<{
-    week: string;
-    workouts: number;
-    duration: number;
-    calories: number;
-  }>;
-}
-
 export interface Exercise {
   id: string;
   name: string;
@@ -559,10 +456,7 @@ export interface PomodoroSettingsData {
 }
 
 export interface PomodoroTimerProps {
-  isOpen: boolean;
-  onClose: () => void;
   settings: PomodoroSettingsData;
-  onSettingsChange: (settings: PomodoroSettingsData) => void;
 }
 
 export interface PomodoroSettingsProps {
@@ -572,9 +466,9 @@ export interface PomodoroSettingsProps {
   onSettingsChange: (settings: PomodoroSettingsData) => void;
 }
 
-export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 
-export interface Food {
+interface Food {
   id: string;
   name: string;
   quantity: string;
@@ -670,22 +564,6 @@ export interface UpdateMealData {
   rating?: 1 | 2 | 3 | 4 | 5;
 }
 
-export interface MealStats {
-  totalCalories: number;
-  averageCalories: number;
-  dailyGoal: number;
-  macroBreakdown: {
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
-  weeklyTrend: Array<{
-    date: string;
-    calories: number;
-    meals: number;
-  }>;
-}
-
 // API Error Types
 export interface ApiError {
   type:
@@ -703,20 +581,6 @@ export interface ApiError {
   code?: string;
   timestamp?: string;
   requestId?: string;
-}
-
-// Validation Error Types
-export interface ValidationError {
-  field: string;
-  message: string;
-  value?: any;
-  constraint?: string;
-}
-
-export interface ValidationErrorResponse {
-  type: "VALIDATION_ERROR";
-  message: string;
-  errors: ValidationError[];
 }
 
 // Pagination Types
@@ -745,76 +609,4 @@ export interface PaginatedResponse<T> {
     sortBy?: string;
     sortOrder?: string;
   };
-}
-
-// Search and Filter Types
-export interface SearchParams {
-  query: string;
-  fields?: string[];
-  fuzzy?: boolean;
-  highlight?: boolean;
-}
-
-export interface FilterParams {
-  field: string;
-  operator:
-    | "eq"
-    | "ne"
-    | "gt"
-    | "gte"
-    | "lt"
-    | "lte"
-    | "in"
-    | "nin"
-    | "regex"
-    | "exists";
-  value: any;
-}
-
-// Analytics and Metrics Types
-export interface AnalyticsData {
-  period: "day" | "week" | "month" | "year";
-  startDate: string;
-  endDate: string;
-  metrics: Record<string, number>;
-  trends: Array<{
-    date: string;
-    values: Record<string, number>;
-  }>;
-}
-
-export interface DashboardStats {
-  habits: HabitStats;
-  todos: TodoStats;
-  finance: FinanceStats;
-  sleep: SleepStats;
-  workout: WorkoutStats;
-  meals: MealStats;
-  overall: {
-    productivity: number;
-    health: number;
-    wellness: number;
-  };
-}
-
-// Export/Import Types
-export interface ExportOptions {
-  format: "json" | "csv" | "pdf";
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-  includeDeleted?: boolean;
-  categories?: string[];
-}
-
-export interface ImportResult {
-  success: boolean;
-  imported: number;
-  failed: number;
-  errors?: Array<{
-    row: number;
-    field: string;
-    message: string;
-  }>;
 }

@@ -12,7 +12,7 @@ export const ProgressTracker = ({ progress }: ProgressTrackerProps) => {
   const getStatusIcon = () => {
     switch (progress.status) {
       case "completed":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-ink" />;
       case "failed":
         return <XCircle className="h-5 w-5 text-destructive" />;
       default:
@@ -23,7 +23,7 @@ export const ProgressTracker = ({ progress }: ProgressTrackerProps) => {
   const getStatusColor = () => {
     switch (progress.status) {
       case "completed":
-        return "text-green-600";
+        return "text-ink";
       case "failed":
         return "text-destructive";
       default:

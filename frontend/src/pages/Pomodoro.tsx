@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import PomodoroTimer from "../components/PomodoroTimer";
 import PomodoroSettings from "../components/PomodoroSettings";
-import Navbar from "../components/Navbar";
-import { Clock, Settings } from "lucide-react";
+import PaperPage from "../components/paper/PaperPage";
+import { PaperButton } from "../components/paper/PaperDialog";
+import { Settings } from "lucide-react";
 import type { PomodoroSettingsData } from "@/services/types";
+import { paperKicker, paperSheet } from "@/lib/paper";
 
 const Pomodoro = () => {
-  const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<PomodoroSettingsData>({
     workTime: 25,
@@ -15,103 +16,68 @@ const Pomodoro = () => {
     longBreakInterval: 4,
   });
 
+  const rows = [
+    { label: "Focus", value: `${settings.workTime} min` },
+    { label: "Short break", value: `${settings.breakTime} min` },
+    { label: "Long break", value: `${settings.longBreakTime} min` },
+    { label: "Long break every", value: `${settings.longBreakInterval} sessions` },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <Navbar />
+    <PaperPage
+      number="02"
+      title="Focus"
+      subtitle="One thing at a time."
+      actions={
+        <PaperButton tone="quiet" onClick={() => setIsSettingsOpen(true)}>
+          <Settings size={16} />
+          Timer lengths
+        </PaperButton>
+      }
+    >
+      <div className="mt-12 grid gap-16 lg:grid-cols-12 lg:gap-10">
+        <section aria-label="Timer" className={`lg:col-span-8 ${paperSheet} px-6 py-12 sm:px-10`}>
+          <PomodoroTimer settings={settings} />
+        </section>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Start Timer Button */}
-        {!isTimerOpen && (
-          <div className="flex flex-col items-center justify-center min-h-[40vh] sm:min-h-[50vh]">
-            <div className="text-center mb-6 sm:mb-8 px-4">
-              <div className="text-5xl sm:text-6xl lg:text-7xl mb-4 sm:mb-6">
-                ⏰
-              </div>
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 sm:mb-4">
-                Ready to Focus?
-              </h2>
-              <p className="text-gray-400 text-sm sm:text-base lg:text-lg mb-6 sm:mb-8 max-w-md mx-auto px-2">
-                Start your Pomodoro session to boost productivity with focused
-                work intervals and refreshing breaks.
-              </p>
-            </div>
+        <aside className="lg:col-span-4">
+          <p className={paperKicker}>The method</p>
+          <p className="mt-4 font-display text-3xl leading-tight">
+            Work in short, protected stretches.
+          </p>
+          <p className="mt-4 leading-relaxed text-ink-soft">
+            Pick one task, start the timer and don't switch until it rings.
+            Take the short break for real. After a full set, step away for
+            longer.
+          </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8 w-full max-w-sm sm:max-w-none px-4 sm:px-0 sm:justify-center">
-              <button
-                onClick={() => setIsTimerOpen(true)}
-                className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-600 via-red-600 to-orange-700 rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/25 focus:outline-none focus:ring-4 focus:ring-orange-500/50"
+          <dl className="mt-10 border-t border-ink font-ledger text-[13px]">
+            {rows.map((row) => (
+              <div
+                key={row.label}
+                className="flex items-baseline justify-between border-b border-paper-rule py-2.5"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 via-red-600 to-orange-700 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center justify-center gap-2 sm:gap-3">
-                  <Clock size={20} className="sm:w-7 sm:h-7" />
-                  <span className="whitespace-nowrap">
-                    Start Pomodoro Session
-                  </span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="group relative px-4 sm:px-6 py-3 sm:py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 hover:scale-105 hover:bg-gray-700/50 focus:outline-none focus:ring-4 focus:ring-gray-500/50"
-              >
-                <div className="relative flex items-center justify-center gap-2 sm:gap-3">
-                  <Settings size={20} className="sm:w-6 sm:h-6" />
-                  <span>Settings</span>
-                </div>
-              </button>
-            </div>
-
-            <div className="text-center w-full px-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 max-w-2xl mx-auto">
-                <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4 border border-gray-700/30">
-                  <div className="text-xl sm:text-2xl mb-1 sm:mb-2">🔥</div>
-                  <h3 className="font-semibold text-white mb-1 text-sm sm:text-base">
-                    Focus Time
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    25 minutes of deep work
-                  </p>
-                </div>
-                <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4 border border-gray-700/30">
-                  <div className="text-xl sm:text-2xl mb-1 sm:mb-2">☕</div>
-                  <h3 className="font-semibold text-white mb-1 text-sm sm:text-base">
-                    Short Break
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    5 minutes to recharge
-                  </p>
-                </div>
-                <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4 border border-gray-700/30 sm:col-span-2 lg:col-span-1">
-                  <div className="text-xl sm:text-2xl mb-1 sm:mb-2">🌟</div>
-                  <h3 className="font-semibold text-white mb-1 text-sm sm:text-base">
-                    Long Break
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    15 minutes after 4 cycles
-                  </p>
-                </div>
+                <dt className="text-ink-soft">{row.label}</dt>
+                <dd className="tabular-nums">{row.value}</dd>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Pomodoro Timer */}
-        <PomodoroTimer
-          isOpen={isTimerOpen}
-          onClose={() => setIsTimerOpen(false)}
-          settings={settings}
-          onSettingsChange={setSettings}
-        />
-
-        {/* Pomodoro Settings */}
-        <PomodoroSettings
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          settings={settings}
-          onSettingsChange={setSettings}
-        />
+            ))}
+          </dl>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="paper-focus ink-link mt-4 text-sm text-ink-soft hover:text-ink"
+          >
+            Change lengths
+          </button>
+        </aside>
       </div>
-    </div>
+
+      <PomodoroSettings
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSettingsChange={setSettings}
+      />
+    </PaperPage>
   );
 };
 

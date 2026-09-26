@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { Moon, Sun, Trash2 } from "lucide-react";
+import ConfirmationDialog from "./ConfirmationDialog";
+import PaperDialog, { PaperButton } from "./paper/PaperDialog";
+import { PaperStat, SectionHeading } from "./paper/PaperPage";
 import {
-  Moon,
-  Sun,
-  Clock,
-  TrendingUp,
-  Calendar,
-  Plus,
-  X,
-  CheckCircle,
-  Star,
-  Trash2,
-} from "lucide-react";
+  paperIconButton,
+  paperKicker,
+  paperLabel,
+  paperSheet,
+  paperTextarea,
+} from "@/lib/paper";
 import SleepChart from "./SleepChart";
 import type { SleepTrackerProps } from "../services/types";
 import { apiService } from "../services/api";
@@ -44,6 +42,7 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({
     entryDate: "",
   });
   const [checkInConfirmation, setCheckInConfirmation] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
 
   // Use refs to track previous values and prevent unnecessary effect runs
   const prevActiveEntryRef = useRef<string | null>(null);
@@ -227,6 +226,7 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({
     try {
       console.log("called fifth time");
       setIsCreatingJournal(true);
+      setNotesError(null);
 
       // Update the sleep entry with quality and notes
       const updateData = {
@@ -282,7 +282,7 @@ ${sleepNotes}`;
         stack: error.stack,
         response: error.response?.data,
       });
-      alert("Failed to save sleep notes. Please try again.");
+      setNotesError("The notes didn't save. Please try again.");
     } finally {
       setIsCreatingJournal(false);
     }
@@ -353,387 +353,280 @@ ${sleepNotes}`;
     };
   };
 
+  // Live "asleep for" clock while a session is open.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!isTracking) return;
+    setNow(Date.now());
+    const tick = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(tick);
+  }, [isTracking]);
+  const elapsedMinutes = activeEntry
+    ? Math.max(0, Math.floor((now - new Date(activeEntry.checkIn).getTime()) / 60000))
+    : 0;
+  const elapsed = `${Math.floor(elapsedMinutes / 60)}h ${String(elapsedMinutes % 60).padStart(2, "0")}m`;
+
   const stats = calculateStats();
 
-  // Filter out active entries for display
-  const displayEntries = sleepEntries
-    .filter((entry) => !entry.isActive)
-    .slice(0, 5);
+  const completedEntries = sleepEntries.filter((entry) => !entry.isActive);
+  const displayEntries = completedEntries.slice(0, 7);
+
+  const qualityWords = ["", "Awful", "Poor", "Okay", "Good", "Great"];
+
+  const closeDelete = () =>
+    setDeleteConfirmation({ isOpen: false, entryId: null, entryDate: "" });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Sleep Tracker</h2>
-          <p className="text-gray-400">
-            Track your sleep patterns and improve your rest
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-sm text-gray-400">Average Duration</p>
-            <p className="text-xl font-bold text-white">
-              {formatDuration(stats.averageDuration)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-400">This Week</p>
-            <p className="text-xl font-bold text-white">{stats.thisWeek}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Check-in/Check-out Button */}
-      <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/30">
-        {!isTracking ? (
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center">
-                <Moon className="w-8 h-8 text-cyan-400" />
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              Start Sleep Tracking?
-            </h3>
-            <p className="text-gray-400 mb-6">
-              This will start tracking your sleep session from now.
-            </p>
-            <button
-              onClick={handleCheckInClick}
-              disabled={isLoading}
-              className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "Starting..." : "Check In"}
-            </button>
-          </div>
-        ) : (
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center animate-pulse">
-                <Sun className="w-8 h-8 text-green-400" />
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              Sleep Session Active
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Your sleep session is being tracked. Click below to end it.
-            </p>
-
-            {cooldownRemaining > 0 ? (
-              <div className="space-y-3">
-                <div className="text-sm text-gray-400">
-                  Please wait before checking out
-                </div>
-                <div className="text-lg font-mono text-yellow-400">
-                  {formatCooldownTime(cooldownRemaining)}
-                </div>
-                <button
-                  disabled={true}
-                  className="px-6 py-3 bg-gray-500 text-white font-medium rounded-lg cursor-not-allowed"
-                >
-                  Check Out (Cooldown)
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleCheckOut}
-                disabled={isLoading}
-                className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Ending..." : "Check Out"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Sleep Chart */}
-      <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/30">
-        <h3 className="text-lg font-semibold text-white mb-4">Sleep Trends</h3>
-        <SleepChart sleepEntries={displayEntries} />
-      </div>
-
-      {/* Recent Entries */}
-      <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/30">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-lg font-semibold text-white">
-              Recent Sleep Sessions
-            </h4>
-            <span className="text-sm text-gray-400">
-              {displayEntries.length} entries
-            </span>
-          </div>
-
-          {displayEntries.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="flex justify-center mb-4">
-                <Moon className="w-8 h-8 text-cyan-400" />
-              </div>
-              <h5 className="text-lg font-medium text-white mb-2">
-                No sleep entries yet
-              </h5>
-              <p className="text-gray-400 text-sm">
-                Start tracking your sleep to see your patterns here
+    <div className="mt-12 space-y-20">
+      {/* Tonight */}
+      <section aria-label="Sleep session" className="grid gap-10 lg:grid-cols-12">
+        <div className={`relative lg:col-span-7 ${paperSheet} px-8 py-10 sm:px-12`}>
+          {!isTracking ? (
+            <>
+              <p className={paperKicker}>Tonight</p>
+              <p className="mt-4 font-display text-5xl leading-[1.02]">
+                Going to bed?
               </p>
-            </div>
+              <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
+                Check in when you turn the light off and check out when you
+                get up. The hours are worked out for you.
+              </p>
+              <PaperButton
+                onClick={handleCheckInClick}
+                disabled={isLoading}
+                className="mt-8"
+              >
+                <Moon size={16} />
+                {isLoading ? "Starting…" : "Check in"}
+              </PaperButton>
+            </>
           ) : (
-            <div className="space-y-4">
-              {displayEntries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map((i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < (entry.quality || 3)
-                                  ? "text-yellow-400 fill-current"
-                                  : "text-gray-500"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm font-medium text-white">
-                          {formatDuration(entry.duration || 0)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-400">
-                        <span>
-                          {formatTime(entry.checkIn)} -{" "}
-                          {entry.checkOut
-                            ? formatTime(entry.checkOut)
-                            : "Active"}
-                        </span>
-                        <span>•</span>
-                        <span>{new Date(entry.date).toLocaleDateString()}</span>
-                      </div>
-                      {entry.notes && (
-                        <p className="text-sm text-gray-300 mt-2">
-                          {entry.notes}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() =>
-                        setDeleteConfirmation({
-                          isOpen: true,
-                          entryId: entry.id,
-                          entryDate: new Date(entry.date).toLocaleDateString(),
-                        })
-                      }
-                      className="text-red-400 hover:text-red-300 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <>
+              <p className={`${paperKicker} flex items-center gap-2`}>
+                <span className="h-2 w-2 animate-pulse rounded-full bg-clay" />
+                Asleep since {activeEntry ? formatTime(activeEntry.checkIn) : "—"}
+              </p>
+              <p className="mt-4 font-ledger text-6xl tabular-nums tracking-tight sm:text-7xl">
+                {elapsed}
+              </p>
+              <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
+                Good morning, when it comes. Check out as you get up.
+              </p>
+              <PaperButton
+                onClick={handleCheckOut}
+                disabled={isLoading || cooldownRemaining > 0}
+                className="mt-8"
+              >
+                <Sun size={16} />
+                {cooldownRemaining > 0
+                  ? `Check out in ${formatCooldownTime(cooldownRemaining)}`
+                  : isLoading
+                  ? "Ending…"
+                  : "Check out"}
+              </PaperButton>
+            </>
           )}
         </div>
-      </div>
 
-      {/* Check-in Confirmation Modal */}
-      <AnimatePresence>
-        {checkInConfirmation && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700/30"
-            >
-              <div className="text-center mb-6">
-                <div className="flex justify-center mb-4">
-                  <Moon className="w-8 h-8 text-cyan-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Start Sleep Tracking?
-                </h3>
-                <p className="text-gray-400">
-                  This will start tracking your sleep session from now.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setCheckInConfirmation(false)}
-                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+        <dl className="grid grid-cols-2 content-start gap-x-8 gap-y-10 border-t border-ink pt-6 lg:col-span-5 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-2">
+          <PaperStat
+            label="Average night"
+            value={stats.averageDuration ? formatDuration(stats.averageDuration) : "—"}
+          />
+          <PaperStat label="Nights this week" value={stats.thisWeek} />
+          <PaperStat
+            label="Average quality"
+            value={stats.averageQuality || "—"}
+            unit={stats.averageQuality ? "/ 5" : undefined}
+          />
+          <PaperStat label="Nights logged" value={stats.totalEntries} />
+        </dl>
+      </section>
+
+      {/* The week */}
+      <section aria-labelledby="week-heading">
+        <SectionHeading
+          id="week-heading"
+          kicker="The last seven nights"
+          title={
+            <>
+              Hours slept, <span className="italic">night by night.</span>
+            </>
+          }
+        />
+        <div className="mt-10">
+          <SleepChart sleepEntries={completedEntries} />
+        </div>
+      </section>
+
+      {/* Recent nights */}
+      <section aria-labelledby="nights-heading">
+        <SectionHeading id="nights-heading" kicker="Recent nights" title="The log." />
+        {displayEntries.length === 0 ? (
+          <p className="mt-10 border-t border-ink py-12 text-center font-display text-2xl italic text-ink-faint">
+            No nights logged yet. Check in tonight.
+          </p>
+        ) : (
+          <ul className="mt-8 border-t border-ink">
+            {displayEntries.map((entry) => {
+              const quality = entry.quality || 3;
+              return (
+                <li
+                  key={entry.id}
+                  className="group grid grid-cols-[4.5rem_1fr_auto] items-start gap-x-4 border-b border-paper-rule py-4"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCheckIn}
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? "Starting..." : "Start Tracking"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Notes Modal */}
-      <AnimatePresence>
-        {isNotesModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700/30"
-            >
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Sleep Session Complete!
-                </h3>
-                <p className="text-gray-400">
-                  How was your sleep? Add some notes and rate your sleep
-                  quality.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Sleep Quality
-                  </label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <button
-                        key={rating}
-                        onClick={() =>
-                          setSleepQuality(rating as 1 | 2 | 3 | 4 | 5)
-                        }
-                        className={`p-2 rounded-lg transition-all duration-200 ${
-                          sleepQuality >= rating
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : "bg-gray-700/50 text-gray-400 hover:bg-gray-600/50"
-                        }`}
+                  <p className="pt-0.5 font-ledger text-[11px] uppercase leading-tight tracking-[0.1em] text-ink-faint">
+                    <span className="block text-base tabular-nums text-ink">
+                      {new Date(entry.date).toLocaleDateString("en-GB", { day: "2-digit" })}
+                    </span>
+                    {new Date(entry.date).toLocaleDateString("en-GB", { month: "short" })}
+                  </p>
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                      <span className="font-display text-2xl leading-none">
+                        {formatDuration(entry.duration || 0)}
+                      </span>
+                      <span className="font-ledger text-xs text-ink-soft">
+                        {formatTime(entry.checkIn)} –{" "}
+                        {entry.checkOut ? formatTime(entry.checkOut) : "…"}
+                      </span>
+                      <span
+                        className="flex items-center gap-1"
+                        aria-label={`Quality ${quality} of 5, ${qualityWords[quality]}`}
+                        title={`${qualityWords[quality]} (${quality}/5)`}
                       >
-                        <Star className="w-5 h-5" />
-                      </button>
-                    ))}
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <span
+                            key={i}
+                            aria-hidden="true"
+                            className={`h-2 w-2 rounded-full ${
+                              i <= quality ? "bg-ink" : "border border-ink/30"
+                            }`}
+                          />
+                        ))}
+                      </span>
+                    </p>
+                    {entry.notes && (
+                      <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                        {entry.notes}
+                      </p>
+                    )}
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Notes (optional)
-                  </label>
-                  <textarea
-                    value={sleepNotes}
-                    onChange={(e) => setSleepNotes(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-700/50 border border-gray-600/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 resize-none"
-                    rows={3}
-                    placeholder="How did you sleep? Any observations..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setIsNotesModalOpen(false)}
-                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  Skip
-                </button>
-                <button
-                  onClick={handleSaveNotes}
-                  disabled={isLoading || isCreatingJournal}
-                  className="flex-1 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isCreatingJournal ? "Creating Journal..." : "Save Notes"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteConfirmation.isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700/30"
-            >
-              <div className="text-center mb-6">
-                <div className="flex justify-center mb-4">
-                  <Trash2 className="w-8 h-8 text-red-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Delete Sleep Entry?
-                </h3>
-                <p className="text-gray-400 mb-6">
-                  Are you sure you want to delete the sleep entry from{" "}
-                  <span className="text-white">
-                    {deleteConfirmation.entryDate}
-                  </span>
-                  ? This action cannot be undone.
-                </p>
-                <div className="flex gap-3">
                   <button
                     onClick={() =>
                       setDeleteConfirmation({
-                        isOpen: false,
-                        entryId: null,
-                        entryDate: "",
+                        isOpen: true,
+                        entryId: entry.id,
+                        entryDate: new Date(entry.date).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "long",
+                        }),
                       })
                     }
-                    className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    className={`${paperIconButton} hover:text-clay sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100`}
+                    aria-label="Delete this night"
                   >
-                    Cancel
+                    <Trash2 size={15} />
                   </button>
-                  <button
-                    onClick={() => {
-                      if (deleteConfirmation.entryId) {
-                        onDeleteSleepEntry(deleteConfirmation.entryId);
-                      }
-                      setDeleteConfirmation({
-                        isOpen: false,
-                        entryId: null,
-                        entryDate: "",
-                      });
-                    }}
-                    disabled={isLoading}
-                    className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {isLoading ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </AnimatePresence>
+      </section>
+
+      <ConfirmationDialog
+        isOpen={checkInConfirmation}
+        onClose={() => setCheckInConfirmation(false)}
+        onConfirm={handleCheckIn}
+        title="Start tonight's session?"
+        message="The clock starts now. Check out when you get up."
+        confirmText="Start"
+        cancelText="Not yet"
+        type="info"
+      />
+
+      <PaperDialog
+        open={isNotesModalOpen}
+        onOpenChange={(open) => !open && setIsNotesModalOpen(false)}
+        title="Good morning."
+        description="How did you sleep? Your answer is saved with the night and copied to your journal."
+      >
+        <div className="space-y-6">
+          <fieldset>
+            <legend className={paperLabel}>Quality</legend>
+            <div className="mt-3 grid grid-cols-5 border border-ink/25">
+              {[1, 2, 3, 4, 5].map((rating) => (
+                <label
+                  key={rating}
+                  className={`cursor-pointer py-2 text-center text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-clay ${
+                    sleepQuality === rating
+                      ? "bg-ink text-paper"
+                      : "text-ink-soft hover:bg-ink/5"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sleep-quality"
+                    value={rating}
+                    checked={sleepQuality === rating}
+                    onChange={() => setSleepQuality(rating as 1 | 2 | 3 | 4 | 5)}
+                    className="sr-only"
+                  />
+                  <span className="block font-ledger text-base">{rating}</span>
+                  <span className="block text-[11px]">{qualityWords[rating]}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div>
+            <label htmlFor="sleep-notes" className={paperLabel}>
+              Notes
+            </label>
+            <textarea
+              id="sleep-notes"
+              value={sleepNotes}
+              onChange={(e) => setSleepNotes(e.target.value)}
+              className={`${paperTextarea} mt-2 resize-none`}
+              rows={3}
+              placeholder="Anything worth remembering?"
+            />
+          </div>
+
+          {notesError && (
+            <p role="alert" className="border-l-2 border-clay bg-clay/10 px-3 py-2 text-sm text-[#8A4526]">
+              {notesError}
+            </p>
+          )}
+
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <PaperButton tone="quiet" onClick={() => setIsNotesModalOpen(false)}>
+              Skip
+            </PaperButton>
+            <PaperButton
+              onClick={handleSaveNotes}
+              disabled={isLoading || isCreatingJournal}
+            >
+              {isCreatingJournal ? "Saving…" : "Save to journal"}
+            </PaperButton>
+          </div>
+        </div>
+      </PaperDialog>
+
+      <ConfirmationDialog
+        isOpen={deleteConfirmation.isOpen}
+        onClose={closeDelete}
+        onConfirm={() => {
+          if (deleteConfirmation.entryId) {
+            onDeleteSleepEntry(deleteConfirmation.entryId);
+          }
+        }}
+        title="Delete this night?"
+        message={`The entry for ${deleteConfirmation.entryDate} will be removed for good.`}
+        confirmText="Delete"
+        cancelText="Keep it"
+      />
     </div>
   );
 };

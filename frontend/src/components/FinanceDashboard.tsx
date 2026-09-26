@@ -1,389 +1,219 @@
 import React, { useMemo, useState } from "react";
-import { X, TrendingUp, TrendingDown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  LineChart,
-  Line,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from "recharts";
 import type { FinanceDashboardProps } from "@/services/types";
+import { toDateKey } from "@/lib/habits";
+import { EXPENSE_INK, INCOME_INK, formatINR, paperKicker } from "@/lib/paper";
 
-const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
-  isOpen,
-  onClose,
-  entries,
-}) => {
-  const [selectedPeriod, setSelectedPeriod] = useState<
-    "week" | "month" | "year"
-  >("year");
+type Period = "week" | "month" | "year";
+
+const periodLabels: Record<Period, string> = {
+  week: "7 days",
+  month: "30 days",
+  year: "12 months",
+};
+
+const compactINR = (value: number) =>
+  `₹${new Intl.NumberFormat("en-IN", { notation: "compact" }).format(value)}`;
+
+type Row = { key: string; label: string; income: number; expenses: number };
+
+const ChartTooltip: React.FC<{
+  active?: boolean;
+  payload?: { payload: Row }[];
+}> = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  const row = payload[0].payload;
+  return (
+    <div className="rounded-[3px] border border-ink/15 bg-[#F9F7EF] px-3 py-2 font-paper text-sm text-ink shadow-[0_12px_24px_-16px_rgba(20,45,30,0.5)]">
+      <p className="font-ledger text-[11px] uppercase tracking-[0.12em] text-ink-faint">
+        {row.label}
+      </p>
+      <p className="mt-1 flex items-center gap-2 tabular-nums">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: INCOME_INK }} />
+        In {formatINR(row.income)}
+      </p>
+      <p className="flex items-center gap-2 tabular-nums">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: EXPENSE_INK }} />
+        Out {formatINR(row.expenses)}
+      </p>
+    </div>
+  );
+};
+
+// Income against spending, bucketed by day, week or month.
+const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ entries }) => {
+  const [period, setPeriod] = useState<Period>("year");
+  const [asTable, setAsTable] = useState(false);
 
   const analytics = useMemo(() => {
-    // Filter data based on selected period
     const now = new Date();
-    let startDate: Date;
+    const days = period === "week" ? 7 : period === "month" ? 30 : 365;
+    const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
-    switch (selectedPeriod) {
-      case "week":
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case "month":
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      case "year":
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-    }
-
-    const filteredData = entries.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startDate && entryDate <= now;
+    const inRange = entries.filter((entry) => {
+      const d = new Date(entry.date);
+      return d >= start && d <= now;
     });
 
-    // Group data based on selected period
-    const groupedData: { [key: string]: { income: number; expenses: number } } =
-      {};
-
-    if (selectedPeriod === "week") {
-      // Group by day for week view
-      filteredData.forEach((entry) => {
-        const date = new Date(entry.date);
-        const dayKey = date.toISOString().split("T")[0]; // YYYY-MM-DD format
-
-        if (!groupedData[dayKey]) {
-          groupedData[dayKey] = { income: 0, expenses: 0 };
-        }
-
-        if (entry.type === "income") {
-          groupedData[dayKey].income += entry.amount;
-        } else {
-          groupedData[dayKey].expenses += entry.amount;
-        }
-      });
-    } else if (selectedPeriod === "month") {
-      // Group by week for month view
-      filteredData.forEach((entry) => {
-        const date = new Date(entry.date);
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
-        const weekKey = weekStart.toISOString().split("T")[0];
-
-        if (!groupedData[weekKey]) {
-          groupedData[weekKey] = { income: 0, expenses: 0 };
-        }
-
-        if (entry.type === "income") {
-          groupedData[weekKey].income += entry.amount;
-        } else {
-          groupedData[weekKey].expenses += entry.amount;
-        }
-      });
-    } else {
-      // Group by month for year view
-      filteredData.forEach((entry) => {
-        const date = new Date(entry.date);
-        const monthKey = `${date.getFullYear()}-${String(
-          date.getMonth() + 1
-        ).padStart(2, "0")}`;
-
-        if (!groupedData[monthKey]) {
-          groupedData[monthKey] = { income: 0, expenses: 0 };
-        }
-
-        if (entry.type === "income") {
-          groupedData[monthKey].income += entry.amount;
-        } else {
-          groupedData[monthKey].expenses += entry.amount;
-        }
-      });
+    const buckets: Record<string, Row> = {};
+    for (const entry of inRange) {
+      const d = new Date(entry.date);
+      let key: string;
+      let label: string;
+      if (period === "week") {
+        key = toDateKey(d);
+        label = d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" });
+      } else if (period === "month") {
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        key = toDateKey(weekStart);
+        label = `w/c ${weekStart.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`;
+      } else {
+        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        label = `${d.toLocaleDateString("en-GB", { month: "short" })} ’${String(d.getFullYear()).slice(2)}`;
+      }
+      buckets[key] ??= { key, label, income: 0, expenses: 0 };
+      if (entry.type === "income") buckets[key].income += entry.amount;
+      else buckets[key].expenses += entry.amount;
     }
 
-    // Convert to array and sort
-    const result = {
-      totalIncome: filteredData
-        .filter((entry) => entry.type === "income")
-        .reduce((sum, entry) => sum + entry.amount, 0),
-      totalExpenses: filteredData
-        .filter((entry) => entry.type === "expense")
-        .reduce((sum, entry) => sum + entry.amount, 0),
-      monthlyData: Object.entries(groupedData)
-        .map(([key, data]) => ({
-          month: key,
-          income: data.income,
-          expenses: data.expenses,
-        }))
-        .sort((a, b) => a.month.localeCompare(b.month)),
+    return {
+      totalIncome: inRange
+        .filter((e) => e.type === "income")
+        .reduce((sum, e) => sum + e.amount, 0),
+      totalExpenses: inRange
+        .filter((e) => e.type === "expense")
+        .reduce((sum, e) => sum + e.amount, 0),
+      rows: Object.values(buckets).sort((a, b) => a.key.localeCompare(b.key)),
     };
-
-    return result;
-  }, [entries, selectedPeriod]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatMonth = (monthKey: string) => {
-    if (selectedPeriod === "week") {
-      // Format as day for week view
-      const date = new Date(monthKey);
-      return date.toLocaleDateString("en-IN", {
-        month: "short",
-        day: "numeric",
-      });
-    } else if (selectedPeriod === "month") {
-      // Format as week for month view
-      const date = new Date(monthKey);
-      const weekEnd = new Date(date);
-      weekEnd.setDate(date.getDate() + 6);
-      return `${date.toLocaleDateString("en-IN", {
-        month: "short",
-        day: "numeric",
-      })} - ${weekEnd.toLocaleDateString("en-IN", {
-        month: "short",
-        day: "numeric",
-      })}`;
-    } else {
-      // Format as month for year view
-      const [year, month] = monthKey.split("-");
-      const date = new Date(parseInt(year), parseInt(month) - 1);
-      return date.toLocaleDateString("en-IN", {
-        month: "short",
-        year: "numeric",
-      });
-    }
-  };
-
-  const getMaxAmount = () => {
-    if (analytics.monthlyData.length === 0) return 0;
-    const maxIncome = Math.max(...analytics.monthlyData.map((d) => d.income));
-    const maxExpenses = Math.max(
-      ...analytics.monthlyData.map((d) => d.expenses)
-    );
-    return Math.max(maxIncome, maxExpenses);
-  };
-
-  const maxAmount = getMaxAmount();
+  }, [entries, period]);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700/30 w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
+    <section aria-labelledby="trend-heading" className="mt-20">
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p className={`mb-3 ${paperKicker}`}>The trend</p>
+          <h2
+            id="trend-heading"
+            className="font-display text-4xl leading-[1.02] tracking-[-0.01em] sm:text-5xl"
           >
-            <div className="sticky top-0 bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-2xl p-4 sm:p-6 border-b border-gray-700/30">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg sm:text-2xl font-bold text-white">
-                  Finance Analytics Dashboard
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                >
-                  <X size={20} className="sm:w-6 sm:h-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 border border-gray-700/30">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
-                    </div>
-                    <span className="text-xs sm:text-sm text-gray-400">
-                      Total Income
-                    </span>
-                  </div>
-                  <div className="text-lg sm:text-2xl font-bold text-emerald-400">
-                    {formatCurrency(analytics.totalIncome)}
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 border border-gray-700/30">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-                      <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
-                    </div>
-                    <span className="text-xs sm:text-sm text-gray-400">
-                      Total Expenses
-                    </span>
-                  </div>
-                  <div className="text-lg sm:text-2xl font-bold text-red-400">
-                    {formatCurrency(analytics.totalExpenses)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Income vs Expenses Chart */}
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-4 sm:p-6 border border-gray-700/30">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">
-                    Income vs Expenses Trend
-                  </h3>
-
-                  {/* Time Period Filter Buttons */}
-                  <div className="flex gap-1 sm:gap-2">
-                    <button
-                      onClick={() => setSelectedPeriod("week")}
-                      className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
-                        selectedPeriod === "week"
-                          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
-                          : "bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white"
-                      }`}
-                    >
-                      Last Week
-                    </button>
-                    <button
-                      onClick={() => setSelectedPeriod("month")}
-                      className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
-                        selectedPeriod === "month"
-                          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
-                          : "bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white"
-                      }`}
-                    >
-                      Last Month
-                    </button>
-                    <button
-                      onClick={() => setSelectedPeriod("year")}
-                      className={`px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 ${
-                        selectedPeriod === "year"
-                          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
-                          : "bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white"
-                      }`}
-                    >
-                      Last Year
-                    </button>
-                  </div>
-                </div>
-
-                {analytics.monthlyData.length > 0 ? (
-                  <div className="space-y-4">
-                    {/* Line Chart */}
-                    <div className="h-48 sm:h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={analytics.monthlyData}
-                          margin={{
-                            top: 10,
-                            right: 20,
-                            left: 10,
-                            bottom: 10,
-                          }}
-                        >
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#374151"
-                            opacity={0.3}
-                          />
-                          <XAxis
-                            dataKey="month"
-                            tickFormatter={formatMonth}
-                            stroke="#9CA3AF"
-                            fontSize={10}
-                            tickLine={false}
-                            axisLine={false}
-                            angle={-45}
-                            textAnchor="end"
-                            height={60}
-                          />
-                          <YAxis
-                            tickFormatter={(value) => formatCurrency(value)}
-                            stroke="#9CA3AF"
-                            fontSize={10}
-                            tickLine={false}
-                            axisLine={false}
-                            width={60}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#1F2937",
-                              border: "1px solid #374151",
-                              borderRadius: "8px",
-                              color: "#F9FAFB",
-                              fontSize: "12px",
-                            }}
-                            labelFormatter={(label) => formatMonth(label)}
-                            formatter={(value: number) => [
-                              formatCurrency(value),
-                              "",
-                            ]}
-                          />
-                          <Legend
-                            wrapperStyle={{
-                              color: "#F9FAFB",
-                              fontSize: "12px",
-                            }}
-                          />
-                          <Line
-                            type="linear"
-                            dataKey="income"
-                            stroke="#10B981"
-                            strokeWidth={2}
-                            dot={{
-                              fill: "#10B981",
-                              strokeWidth: 1,
-                              r: 3,
-                            }}
-                            activeDot={{
-                              r: 4,
-                              stroke: "#10B981",
-                              strokeWidth: 1,
-                              fill: "#1F2937",
-                            }}
-                            name="Income"
-                          />
-                          <Line
-                            type="linear"
-                            dataKey="expenses"
-                            stroke="#EF4444"
-                            strokeWidth={2}
-                            dot={{
-                              fill: "#EF4444",
-                              strokeWidth: 1,
-                              r: 3,
-                            }}
-                            activeDot={{
-                              r: 4,
-                              stroke: "#EF4444",
-                              strokeWidth: 1,
-                              fill: "#1F2937",
-                            }}
-                            name="Expenses"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 sm:py-12">
-                    <p className="text-gray-400 text-sm sm:text-base">
-                      No data available for the selected period
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
+            In and out, <span className="italic">over time.</span>
+          </h2>
         </div>
-      )}
-    </AnimatePresence>
+        <div className="flex items-center gap-6">
+          <div role="tablist" aria-label="Period" className="flex gap-5">
+            {(Object.keys(periodLabels) as Period[]).map((p) => (
+              <button
+                key={p}
+                role="tab"
+                aria-selected={period === p}
+                onClick={() => setPeriod(p)}
+                className={`paper-focus relative pb-1 text-[15px] ${
+                  period === p
+                    ? "text-ink after:absolute after:inset-x-0 after:-bottom-px after:h-[2px] after:bg-clay"
+                    : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setAsTable((t) => !t)}
+            className="paper-focus ink-link text-sm text-ink-soft hover:text-ink"
+          >
+            {asTable ? "Show chart" : "Show table"}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-8 border-t border-ink pt-6">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+          <span className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: INCOME_INK }} />
+            Money in
+            <span className="font-ledger tabular-nums text-ink-soft">
+              {formatINR(analytics.totalIncome)}
+            </span>
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: EXPENSE_INK }} />
+            Money out
+            <span className="font-ledger tabular-nums text-ink-soft">
+              {formatINR(analytics.totalExpenses)}
+            </span>
+          </span>
+        </div>
+
+        {analytics.rows.length === 0 ? (
+          <p className="py-16 text-center font-display text-2xl italic text-ink-faint">
+            Nothing logged in the last {periodLabels[period]}.
+          </p>
+        ) : asTable ? (
+          <table className="mt-6 w-full font-ledger text-[13px]">
+            <thead>
+              <tr className="border-b border-ink text-left text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+                <th className="py-2 font-normal">Period</th>
+                <th className="py-2 text-right font-normal">In</th>
+                <th className="py-2 text-right font-normal">Out</th>
+                <th className="py-2 text-right font-normal">Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.rows.map((row) => (
+                <tr key={row.key} className="border-b border-paper-rule">
+                  <td className="py-2">{row.label}</td>
+                  <td className="py-2 text-right tabular-nums">{formatINR(row.income)}</td>
+                  <td className="py-2 text-right tabular-nums">{formatINR(row.expenses)}</td>
+                  <td className="py-2 text-right tabular-nums">
+                    {formatINR(row.income - row.expenses)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="mt-6 h-64 w-full sm:h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={analytics.rows}
+                margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
+                barGap={2}
+                barCategoryGap="28%"
+              >
+                <CartesianGrid vertical={false} stroke="#D3CDB7" strokeDasharray="0" />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={{ stroke: "#1F3326" }}
+                  tick={{ fill: "#52614F", fontSize: 11, fontFamily: "Geist Mono" }}
+                  interval="preserveStartEnd"
+                  minTickGap={12}
+                />
+                <YAxis
+                  tickFormatter={compactINR}
+                  tickLine={false}
+                  axisLine={false}
+                  width={56}
+                  tick={{ fill: "#86907F", fontSize: 11, fontFamily: "Geist Mono" }}
+                />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(31,51,38,0.05)" }} />
+                <Bar dataKey="income" name="Money in" fill={INCOME_INK} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false} />
+                <Bar dataKey="expenses" name="Money out" fill={EXPENSE_INK} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+    </section>
   );
 };
 

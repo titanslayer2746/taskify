@@ -51,6 +51,7 @@ import {
   FinanceStats,
   SleepStats,
 } from "./types";
+import type { Project, ProjectInput } from "@/types/project";
 
 class ApiService {
   // ==================== AUTHENTICATION ====================
@@ -168,6 +169,40 @@ class ApiService {
   // Delete todo
   async deleteTodo(todoId: string): Promise<ApiResponse<void>> {
     return httpClient.delete<void>(`/todos/${todoId}`);
+  }
+
+  // ==================== PROJECTS ====================
+
+  // Get all projects for the user
+  async getProjects(): Promise<ApiResponse<{ projects: Project[] }>> {
+    return httpClient.get<{ projects: Project[] }>("/projects");
+  }
+
+  // Create a project
+  async createProject(data: ProjectInput): Promise<ApiResponse<{ project: Project }>> {
+    return httpClient.post<{ project: Project }>("/projects", data);
+  }
+
+  // Update any subset of a project's fields
+  async updateProject(
+    projectId: string,
+    data: Partial<ProjectInput>
+  ): Promise<ApiResponse<{ project: Project }>> {
+    return httpClient.put<{ project: Project }>(`/projects/${projectId}`, data);
+  }
+
+  // Delete a project
+  async deleteProject(projectId: string): Promise<ApiResponse<void>> {
+    return httpClient.delete<void>(`/projects/${projectId}`);
+  }
+
+  // Import several projects at once (moving browser-only projects to the account)
+  async importProjects(
+    projects: ProjectInput[]
+  ): Promise<
+    ApiResponse<{ projects: Project[]; skipped: { index: number; reason: string }[] }>
+  > {
+    return httpClient.post("/projects/import", { projects });
   }
 
   // ==================== JOURNAL ====================
@@ -464,6 +499,3 @@ class ApiService {
 
 // Create and export API service instance
 export const apiService = new ApiService();
-
-// Export the class for testing purposes
-export { ApiService };

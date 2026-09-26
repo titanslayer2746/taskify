@@ -22,12 +22,9 @@ export const ChatbotBubble = () => {
       <Button
         onClick={handleToggle}
         size="icon"
-        className={`fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg transition-all duration-300 z-50
-          ${
-            isOpen
-              ? "bg-destructive hover:bg-destructive/90"
-              : "bg-primary hover:bg-primary/90 hover:scale-110"
-          }
+        aria-label={isOpen ? "Close assistant" : "Open assistant"}
+        className={`fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-[0_12px_24px_-12px_rgba(20,45,30,0.6)] transition-colors duration-200
+          ${isOpen ? "bg-ink hover:bg-ink/90" : "bg-ink hover:bg-clay"}
         `}
       >
         {isOpen ? (
@@ -37,10 +34,6 @@ export const ChatbotBubble = () => {
         )}
       </Button>
 
-      {/* Pulse Animation when closed */}
-      {!isOpen && (
-        <div className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary/30 animate-ping z-40 pointer-events-none" />
-      )}
     </>
   );
 };

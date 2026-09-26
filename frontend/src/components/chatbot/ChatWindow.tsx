@@ -37,14 +37,16 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+        className="fixed inset-0 bg-ink/30 z-40 md:hidden"
         onClick={onClose}
       />
 
       {/* Chat Window */}
       <div
-        className={`fixed z-50 bg-background shadow-2xl flex flex-col
-          md:bottom-24 md:right-6 md:w-[400px] md:h-[600px] md:rounded-lg
+        role="dialog"
+        aria-label="Assistant"
+        className={`fixed z-50 flex flex-col bg-[#F9F7EF] font-paper text-ink shadow-[0_1px_0_#d3cdb7,0_30px_60px_-20px_rgba(20,45,30,0.45)]
+          md:bottom-24 md:right-6 md:h-[600px] md:w-[400px] md:rounded-[3px]
           inset-0 md:inset-auto
         `}
       >

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useAuth } from "./useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { aiService } from "@/services/aiService";
 import type {
   Message,

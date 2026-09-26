@@ -328,6 +328,3 @@ class HttpClient {
 
 // Create and export HTTP client instance
 export const httpClient = new HttpClient(API_BASE_URL);
-
-// Export the class for testing purposes
-export { HttpClient };

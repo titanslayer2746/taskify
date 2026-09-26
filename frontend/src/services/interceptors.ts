@@ -17,7 +17,7 @@ export interface ErrorInterceptor {
 }
 
 // Authentication request interceptor
-export const authRequestInterceptor: RequestInterceptor = (config) => {
+const authRequestInterceptor: RequestInterceptor = (config) => {
   const authHeaders = getAuthHeaders();
   const headers = new Headers(config.headers);
 
@@ -33,7 +33,7 @@ export const authRequestInterceptor: RequestInterceptor = (config) => {
 };
 
 // Token refresh request interceptor
-export const tokenRefreshInterceptor: RequestInterceptor = async (config) => {
+const tokenRefreshInterceptor: RequestInterceptor = async (config) => {
   // Check if token is about to expire (you can implement token expiration check here)
   const token = tokenStorage.getToken();
 
@@ -50,7 +50,7 @@ export const tokenRefreshInterceptor: RequestInterceptor = async (config) => {
 };
 
 // Logging request interceptor
-export const loggingRequestInterceptor: RequestInterceptor = (config) => {
+const loggingRequestInterceptor: RequestInterceptor = (config) => {
   if (import.meta.env.DEV) {
     console.log("🚀 API Request:", {
       method: config.method || "GET",
@@ -63,7 +63,7 @@ export const loggingRequestInterceptor: RequestInterceptor = (config) => {
 };
 
 // Authentication response interceptor
-export const authResponseInterceptor: ResponseInterceptor = (response) => {
+const authResponseInterceptor: ResponseInterceptor = (response) => {
   // Handle 401 Unauthorized responses
   if (response.status === 401) {
     // Don't automatically clear auth data on 401 - let the auth context handle it
@@ -82,7 +82,7 @@ export const authResponseInterceptor: ResponseInterceptor = (response) => {
 };
 
 // Logging response interceptor
-export const loggingResponseInterceptor: ResponseInterceptor = async (
+const loggingResponseInterceptor: ResponseInterceptor = async (
   response
 ) => {
   if (import.meta.env.DEV) {
@@ -112,7 +112,7 @@ export const loggingResponseInterceptor: ResponseInterceptor = async (
 };
 
 // Rate limiting response interceptor
-export const rateLimitResponseInterceptor: ResponseInterceptor = (response) => {
+const rateLimitResponseInterceptor: ResponseInterceptor = (response) => {
   if (response.status === 429) {
     const retryAfter = response.headers.get("Retry-After");
     console.warn(`⏰ Rate limited. Retry after: ${retryAfter} seconds`);
@@ -125,7 +125,7 @@ export const rateLimitResponseInterceptor: ResponseInterceptor = (response) => {
 };
 
 // Error logging interceptor
-export const errorLoggingInterceptor: ErrorInterceptor = (error) => {
+const errorLoggingInterceptor: ErrorInterceptor = (error) => {
   console.error("❌ API Error:", {
     type: error.type,
     message: error.message,
@@ -138,7 +138,7 @@ export const errorLoggingInterceptor: ErrorInterceptor = (error) => {
 };
 
 // Error notification interceptor
-export const errorNotificationInterceptor: ErrorInterceptor = (error) => {
+const errorNotificationInterceptor: ErrorInterceptor = (error) => {
   // You can integrate with a notification system here
   // For example, show toast notifications for certain error types
 
@@ -169,7 +169,7 @@ export const errorNotificationInterceptor: ErrorInterceptor = (error) => {
 };
 
 // Retry interceptor for network errors
-export const retryErrorInterceptor: ErrorInterceptor = async (error) => {
+const retryErrorInterceptor: ErrorInterceptor = async (error) => {
   if (error.type === "NETWORK_ERROR") {
     // You can implement retry logic here
     console.log("🔄 Attempting to retry request...");
@@ -212,29 +212,3 @@ export const createDefaultInterceptors = () => ({
     retryErrorInterceptor,
   ],
 });
-
-// Utility function to check if token is expired
-export const isTokenExpired = (token: string): boolean => {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const expirationTime = payload.exp * 1000; // Convert to milliseconds
-    const currentTime = Date.now();
-
-    // Check if token expires in the next 5 minutes
-    return currentTime >= expirationTime - 5 * 60 * 1000;
-  } catch (error) {
-    console.error("Error parsing token:", error);
-    return true; // Assume expired if we can't parse
-  }
-};
-
-// Utility function to get token expiration time
-export const getTokenExpirationTime = (token: string): Date | null => {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return new Date(payload.exp * 1000);
-  } catch (error) {
-    console.error("Error parsing token expiration:", error);
-    return null;
-  }
-};

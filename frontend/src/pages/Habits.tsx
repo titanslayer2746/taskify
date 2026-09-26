@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
 import CreateHabitModal from "../components/CreateHabitModal";
 import HabitHeatmap from "../components/HabitHeatmap";
-import Navbar from "../components/Navbar";
-import { Plus, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import PaperPage, {
+  PaperBanner,
+  PaperEmpty,
+  PaperErrorState,
+  PaperLoading,
+} from "../components/paper/PaperPage";
+import { PaperButton } from "../components/paper/PaperDialog";
+import { Plus } from "lucide-react";
+import { todayDateline } from "@/lib/paper";
+import { currentStreak, lastSevenDays, todayKey } from "@/lib/habits";
 import { apiService } from "@/services/api";
 import { Habit } from "@/services/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -226,106 +234,158 @@ const Habits = () => {
     }
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-purple-400 mb-4" />
-            <p className="text-gray-400">Loading your habits...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const today = todayKey();
+  const week = lastSevenDays();
+  const keptToday = habits.filter((h) => h.completions[today]).length;
+  const shell = (content: React.ReactNode) => (
+    <PaperPage
+      number="04"
+      title="Habits"
+      subtitle={todayDateline()}
+      actions={
+        habits.length > 0 ? (
+          <PaperButton onClick={() => setIsModalOpen(true)} disabled={isCreating}>
+            <Plus size={16} />
+            New habit
+          </PaperButton>
+        ) : undefined
+      }
+    >
+      {content}
+      <CreateHabitModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={createHabit}
+        isLoading={isCreating}
+      />
+    </PaperPage>
+  );
 
-  // Error state
+  if (isLoading) return shell(<PaperLoading label="Opening your habits…" />);
+
   if (error && habits.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">
-              Failed to load habits
-            </h3>
-            <p className="text-gray-400 text-center mb-6 max-w-md">{error}</p>
-            <button
-              onClick={fetchHabits}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-violet-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return shell(<PaperErrorState message={error} onRetry={fetchHabits} />);
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <Navbar />
+  return shell(
+    <>
+      {error && <PaperBanner message={error} onDismiss={() => setError(null)} />}
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Error banner */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <span className="text-red-400">{error}</span>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-400 hover:text-red-300 transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {habits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              disabled={isCreating}
-              className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative flex items-center gap-2">
-                {isCreating ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <Plus size={24} />
-                )}
-                {isCreating ? "Creating..." : "Create Your First Habit"}
-              </div>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            <div className="flex justify-center">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                disabled={isCreating}
-                className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+      {habits.length === 0 ? (
+        <PaperEmpty
+          title="A blank page."
+          body="Pick one small thing you'd like to do every day. Tick it off here, and over the year the squares fill in."
+          action={
+            <PaperButton onClick={() => setIsModalOpen(true)} disabled={isCreating}>
+              <Plus size={16} />
+              Add your first habit
+            </PaperButton>
+          }
+        />
+      ) : (
+        <>
+          {/* Today */}
+          <section aria-labelledby="today-heading" className="mt-12">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2
+                id="today-heading"
+                className="font-ledger text-[11px] uppercase tracking-[0.18em] text-ink"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-2">
-                  {isCreating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus size={20} />
-                  )}
-                  {isCreating ? "Creating..." : "Create Habit"}
-                </div>
-              </button>
+                Today
+              </h2>
+              <p className="font-display text-xl italic text-ink-soft">
+                {keptToday === habits.length
+                  ? "All kept. Nicely done."
+                  : `${keptToday} of ${habits.length} kept`}
+              </p>
             </div>
 
-            <div className="space-y-12">
+            <ul className="mt-3 border-t border-ink/20">
+              {habits.map((habit) => {
+                const done = !!habit.completions[today];
+                const pending =
+                  optimisticUpdates.has(habit.id) || habit.id.startsWith("temp-");
+                const streak = currentStreak(habit.completions);
+                return (
+                  <li key={habit.id} className="border-b border-paper-rule">
+                    <button
+                      onClick={() => toggleCompletion(habit.id, today)}
+                      disabled={pending}
+                      aria-pressed={done}
+                      className="paper-focus group flex w-full items-center gap-4 py-4 text-left disabled:cursor-wait sm:gap-5"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`grid h-6 w-6 shrink-0 place-items-center border-[1.5px] transition-colors duration-200 ${
+                          done
+                            ? "border-ink bg-ink"
+                            : "border-ink/60 group-hover:border-ink group-hover:bg-ink/5"
+                        }`}
+                      >
+                        {done && (
+                          <svg viewBox="0 0 10 10" className="h-3.5 w-3.5 text-paper">
+                            <path
+                              d="M1.5 5.5l2.2 2.2L8.5 2.5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            />
+                          </svg>
+                        )}
+                      </span>
+
+                      <span
+                        className={`min-w-0 flex-1 truncate text-lg transition-colors sm:text-xl ${
+                          done
+                            ? "text-ink-faint line-through decoration-clay decoration-[1.5px]"
+                            : "text-ink"
+                        }`}
+                      >
+                        {habit.name}
+                      </span>
+
+                      <span
+                        aria-hidden="true"
+                        className="hidden items-center gap-1 sm:flex"
+                        title="Last 7 days"
+                      >
+                        {week.map((day) => (
+                          <span
+                            key={day}
+                            className={`h-3 w-3 rounded-[2px] ${
+                              habit.completions[day]
+                                ? "bg-ink"
+                                : day === today
+                                ? "border border-clay"
+                                : "border border-ink/25"
+                            }`}
+                          />
+                        ))}
+                      </span>
+
+                      <span className="shrink-0 whitespace-nowrap text-right font-ledger text-xs text-ink-soft">
+                        {pending ? "saving…" : streak > 0 ? `${streak}-day streak` : "—"}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* The year */}
+          <section aria-labelledby="year-heading" className="mt-24">
+            <p className="mb-4 font-ledger text-[11px] uppercase tracking-[0.18em] text-ink-soft">
+              {new Date().getFullYear()}
+            </p>
+            <h2
+              id="year-heading"
+              className="font-display text-5xl leading-[1.02] tracking-[-0.01em] sm:text-6xl"
+            >
+              The year, <span className="italic">one square a day.</span>
+            </h2>
+
+            <div className="mt-12 space-y-20">
               {habits.map((habit) => (
                 <HabitHeatmap
                   key={habit.id}
@@ -336,17 +396,10 @@ const Habits = () => {
                 />
               ))}
             </div>
-          </div>
-        )}
-
-        <CreateHabitModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onConfirm={createHabit}
-          isLoading={isCreating}
-        />
-      </div>
-    </div>
+          </section>
+        </>
+      )}
+    </>
   );
 };
 

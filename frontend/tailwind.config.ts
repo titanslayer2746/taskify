@@ -53,57 +53,43 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				paper: {
+					DEFAULT: '#F1EEE3',
+					deep: '#E6E1CF',
+					rule: '#D3CDB7'
+				},
+				ink: {
+					DEFAULT: '#1F3326',
+					soft: '#52614F',
+					faint: '#86907F'
+				},
+				clay: {
+					DEFAULT: '#B8643C'
+				},
+				// Swiss instrument (new design)
+				shell: {
+					DEFAULT: '#E4E4E0',
+					light: '#EEEEEB',
+					rule: '#C6C6C0'
+				},
+				graphite: {
+					DEFAULT: '#121212',
+					soft: '#4E4E49',
+					faint: '#86867F'
+				},
+				signal: '#FF4F12'
+			},
+			fontFamily: {
+				display: ['"Instrument Serif"', 'Georgia', 'serif'],
+				paper: ['Geist', 'system-ui', 'sans-serif'],
+				ledger: ['"Geist Mono"', 'ui-monospace', 'monospace'],
+				grotesk: ['"Inter Tight"', 'system-ui', 'sans-serif'],
+				readout: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
-			},
-			keyframes: {
-				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
-				},
-				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
-				},
-				'scale-in': {
-					'0%': {
-						transform: 'scale(0.95)',
-						opacity: '0'
-					},
-					'100%': {
-						transform: 'scale(1)',
-						opacity: '1'
-					}
-				}
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
-				'scale-in': 'scale-in 0.2s ease-out'
-			},
-			gridTemplateColumns: {
-				'53': 'repeat(53, minmax(0, 1fr))'
 			}
 		}
 	},
