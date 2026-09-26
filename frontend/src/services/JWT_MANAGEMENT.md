@@ -8,11 +8,10 @@ This document provides comprehensive documentation for the JWT token storage and
 2. [Core Components](#core-components)
 3. [Token Storage](#token-storage)
 4. [Token Refresh Service](#token-refresh-service)
-5. [React Hooks](#react-hooks)
-6. [Usage Examples](#usage-examples)
-7. [Security Features](#security-features)
-8. [Configuration](#configuration)
-9. [Best Practices](#best-practices)
+5. [Usage Examples](#usage-examples)
+6. [Security Features](#security-features)
+7. [Configuration](#configuration)
+8. [Best Practices](#best-practices)
 
 ## Overview
 
@@ -35,9 +34,9 @@ Manages JWT tokens, refresh tokens, and user data in localStorage.
 
 Handles automatic token renewal with retry logic and error recovery.
 
-### 3. React Hooks (`useAuth.ts`)
+### 3. Auth context (`contexts/AuthContext.tsx`)
 
-Provides React components with authentication state and actions.
+Components read and change auth state through `useAuth()` from `@/contexts/AuthContext`. See [AUTH_CONTEXT.md](../contexts/AUTH_CONTEXT.md).
 
 ## Token Storage
 
@@ -220,204 +219,9 @@ const status = tokenRefreshUtils.getStatus();
 tokenRefreshUtils.stop();
 ```
 
-## React Hooks
-
-### Main Authentication Hook
-
-```typescript
-import { useAuth } from "@/hooks/useAuth";
-
-function MyComponent() {
-  const {
-    isAuthenticated,
-    user,
-    token,
-    isLoading,
-    error,
-    login,
-    logout,
-    updateUser,
-    refreshToken,
-    clearError,
-    getAuthStatus,
-    getRefreshStatus,
-    isTokenExpired,
-    isTokenExpiringSoon,
-    getTokenTTL,
-  } = useAuth();
-
-  // Use authentication state and actions
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
-  return (
-    <div>
-      {isAuthenticated ? (
-        <div>
-          <p>Welcome, {user?.name}!</p>
-          <button onClick={logout}>Logout</button>
-        </div>
-      ) : (
-        <div>Please log in</div>
-      )}
-    </div>
-  );
-}
-```
-
-### Specialized Hooks
-
-```typescript
-import {
-  useIsAuthenticated,
-  useCurrentUser,
-  useToken,
-  useAuthStatus,
-  useAuthActions,
-  useAuthState,
-} from "@/hooks/useAuth";
-
-// Check authentication status
-function AuthCheck() {
-  const isAuthenticated = useIsAuthenticated();
-  return isAuthenticated ? <AuthenticatedApp /> : <LoginForm />;
-}
-
-// Get current user
-function UserProfile() {
-  const user = useCurrentUser();
-  return user ? <Profile user={user} /> : <Loading />;
-}
-
-// Token management
-function TokenInfo() {
-  const { token, isExpired, isExpiringSoon, ttl, refresh } = useToken();
-
-  return (
-    <div>
-      <p>TTL: {ttl}s</p>
-      {isExpiringSoon && <button onClick={refresh}>Refresh Token</button>}
-    </div>
-  );
-}
-
-// Authentication actions
-function AuthActions() {
-  const { login, logout, updateUser } = useAuthActions();
-
-  const handleLogin = async (credentials) => {
-    const response = await apiService.login(credentials);
-    login(response);
-  };
-
-  return (
-    <div>
-      <button onClick={handleLogin}>Login</button>
-      <button onClick={logout}>Logout</button>
-    </div>
-  );
-}
-```
-
 ## Usage Examples
 
-### Complete Authentication Flow
-
-```typescript
-import { useAuth } from "@/hooks/useAuth";
-import { apiService } from "@/services";
-
-function LoginForm() {
-  const { login, isLoading, error } = useAuth();
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await apiService.login(credentials);
-      login(response);
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        value={credentials.email}
-        onChange={(e) =>
-          setCredentials((prev) => ({ ...prev, email: e.target.value }))
-        }
-        placeholder="Email"
-      />
-      <input
-        type="password"
-        value={credentials.password}
-        onChange={(e) =>
-          setCredentials((prev) => ({ ...prev, password: e.target.value }))
-        }
-        placeholder="Password"
-      />
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
-      </button>
-      {error && <p className="error">{error}</p>}
-    </form>
-  );
-}
-```
-
-### Protected Route Component
-
-```typescript
-import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
-
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
-```
-
-### Token Refresh Integration
-
-```typescript
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { tokenRefreshUtils } from "@/services";
-
-function App() {
-  const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Initialize token refresh service
-      tokenRefreshUtils.initialize({
-        autoRefresh: true,
-        refreshThreshold: 300, // 5 minutes
-      });
-
-      return () => {
-        // Cleanup on unmount
-        tokenRefreshUtils.stop();
-      };
-    }
-  }, [isAuthenticated]);
-
-  return <div>Your app content</div>;
-}
-```
+For sign-in, sign-out and protected routes in React components, see [AUTH_CONTEXT.md](../contexts/AUTH_CONTEXT.md) and [ROUTE_PROTECTION.md](./ROUTE_PROTECTION.md).
 
 ### HTTP Client Integration
 

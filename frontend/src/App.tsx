@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ChatbotProvider } from "@/contexts/ChatbotContext";
 import { ProtectedRoute, PublicRoute } from "@/components/ProtectedRoute";
 import { ChatbotBubble } from "@/components/chatbot/ChatbotBubble";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";

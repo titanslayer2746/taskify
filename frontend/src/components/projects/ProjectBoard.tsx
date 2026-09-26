@@ -1,59 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Project, ProjectStatus, ProjectColumn } from "@/types/project";
-import { ProjectService } from "@/services/projectService";
+import { Project, ProjectInput, ProjectStatus } from "@/types/project";
+import { apiService } from "@/services/api";
+import { clearLegacyProjects, readLegacyProjects } from "@/services/legacyProjects";
+import {
+  PaperBanner,
+  PaperErrorState,
+  PaperLoading,
+} from "@/components/paper/PaperPage";
 import { ProjectCard } from "./ProjectCard";
 import { AddProjectDialog } from "./AddProjectDialog";
 import { EditProjectDialog } from "./EditProjectDialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, BarChart3 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { Search } from "lucide-react";
+import { paperInput, paperSelect } from "@/lib/paper";
+import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "./projectMeta";
 
-const columns: ProjectColumn[] = [
-  {
-    id: "not-started",
-    title: "Not Started",
-    color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-    projects: [],
-  },
-  {
-    id: "in-progress",
-    title: "In Progress",
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    projects: [],
-  },
-  {
-    id: "done",
-    title: "Done",
-    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    projects: [],
-  },
-  {
-    id: "archive",
-    title: "Archive",
-    color:
-      "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-    projects: [],
-  },
-];
+const columns: { id: ProjectStatus; title: string }[] = STATUS_OPTIONS.map(
+  (option) => ({ id: option.value, title: option.label })
+);
 
 export const ProjectBoard: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -64,89 +28,154 @@ export const ProjectBoard: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
   const [draggedProject, setDraggedProject] = useState<Project | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<ProjectStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  // Load projects on component mount
+  // Load projects on mount, moving any browser-only projects to the account first.
   useEffect(() => {
     loadProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter projects when search or filters change
   useEffect(() => {
-    let filtered = projects;
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(
+    const query = searchQuery.toLowerCase();
+    setFilteredProjects(
+      projects.filter(
         (project) =>
-          project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          project.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          project.tags.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-      );
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((project) => project.status === statusFilter);
-    }
-
-    // Priority filter
-    if (priorityFilter !== "all") {
-      filtered = filtered.filter(
-        (project) => project.priority === priorityFilter
-      );
-    }
-
-    setFilteredProjects(filtered);
+          (!query ||
+            project.title.toLowerCase().includes(query) ||
+            project.description.toLowerCase().includes(query) ||
+            project.tags.some((tag) => tag.toLowerCase().includes(query))) &&
+          (statusFilter === "all" || project.status === statusFilter) &&
+          (priorityFilter === "all" || project.priority === priorityFilter)
+      )
+    );
   }, [projects, searchQuery, statusFilter, priorityFilter]);
 
-  const loadProjects = () => {
-    const allProjects = ProjectService.getAllProjects();
-    setProjects(allProjects);
+  const errorMessage = (error: unknown, fallback: string) =>
+    (error as { response?: { data?: { message?: string } } })?.response?.data
+      ?.message ||
+    (error as { message?: string })?.message ||
+    fallback;
+
+  const migrateLegacyProjects = async () => {
+    const legacy = readLegacyProjects();
+    if (legacy.length === 0) {
+      clearLegacyProjects(); // drops the old sample projects, if any
+      return;
+    }
+    const response = await apiService.importProjects(legacy);
+    if (response.success) {
+      clearLegacyProjects();
+      const count = response.data?.projects.length ?? 0;
+      if (count > 0) {
+        setNotice(
+          `Moved ${count} project${count === 1 ? "" : "s"} from this browser into your account.`
+        );
+      }
+    }
   };
 
-  const getProjectsByStatus = (status: ProjectStatus): Project[] => {
-    return filteredProjects.filter((project) => project.status === status);
+  const loadProjects = async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      await migrateLegacyProjects().catch((error) =>
+        console.error("Project migration failed:", error)
+      );
+      const response = await apiService.getProjects();
+      if (response.success && response.data) {
+        setProjects(response.data.projects);
+      } else {
+        setLoadError(response.message || "Your projects didn't load.");
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error);
+      setLoadError(errorMessage(error, "Your projects didn't load. Please try again."));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAddProject = (
-    projectData: Omit<Project, "id" | "createdAt" | "updatedAt">
-  ) => {
-    ProjectService.createProject(projectData);
-    loadProjects();
+  const replaceProject = (updated: Project) =>
+    setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+
+  const getProjectsByStatus = (status: ProjectStatus): Project[] =>
+    filteredProjects.filter((project) => project.status === status);
+
+  const handleAddProject = async (projectData: ProjectInput) => {
+    try {
+      const response = await apiService.createProject(projectData);
+      if (response.success && response.data) {
+        setProjects((prev) => [response.data!.project, ...prev]);
+      } else {
+        setActionError(response.message || "The project wasn't saved.");
+      }
+    } catch (error) {
+      setActionError(errorMessage(error, "The project wasn't saved. Please try again."));
+    }
   };
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
   };
 
-  const handleUpdateProject = (
-    projectId: string,
-    updates: Partial<Project>
-  ) => {
-    ProjectService.updateProject(projectId, updates);
-    loadProjects();
+  const handleUpdateProject = async (projectId: string, updates: Partial<ProjectInput>) => {
     setEditingProject(null);
+    try {
+      const response = await apiService.updateProject(projectId, updates);
+      if (response.success && response.data) {
+        replaceProject(response.data.project);
+      } else {
+        setActionError(response.message || "Your changes weren't saved.");
+      }
+    } catch (error) {
+      setActionError(errorMessage(error, "Your changes weren't saved. Please try again."));
+    }
   };
 
   const handleDeleteProject = (projectId: string) => {
     setDeleteProjectId(projectId);
   };
 
-  const confirmDeleteProject = () => {
-    if (deleteProjectId) {
-      ProjectService.deleteProject(deleteProjectId);
-      loadProjects();
-      setDeleteProjectId(null);
+  const confirmDeleteProject = async () => {
+    const projectId = deleteProjectId;
+    setDeleteProjectId(null);
+    if (!projectId) return;
+    try {
+      const response = await apiService.deleteProject(projectId);
+      if (response.success) {
+        setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      } else {
+        setActionError(response.message || "The project wasn't deleted.");
+      }
+    } catch (error) {
+      setActionError(errorMessage(error, "The project wasn't deleted. Please try again."));
     }
   };
 
-  const handleStatusChange = (projectId: string, newStatus: string) => {
-    ProjectService.updateProjectStatus(projectId, newStatus as ProjectStatus);
-    loadProjects();
+  // Moving between columns is optimistic so drag and drop feels instant.
+  const handleStatusChange = async (projectId: string, newStatus: string) => {
+    const previous = projects.find((p) => p.id === projectId);
+    if (!previous || previous.status === newStatus) return;
+    const status = newStatus as ProjectStatus;
+    replaceProject({ ...previous, status });
+    try {
+      const response = await apiService.updateProject(projectId, { status });
+      if (response.success && response.data) {
+        replaceProject(response.data.project);
+      } else {
+        replaceProject(previous);
+        setActionError(response.message || "The project couldn't be moved.");
+      }
+    } catch (error) {
+      replaceProject(previous);
+      setActionError(errorMessage(error, "The project couldn't be moved. Please try again."));
+    }
   };
 
   // Drag and drop handlers
@@ -186,157 +215,121 @@ export const ProjectBoard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold chartreuse-gradient-text">
-            Project Management
-          </h1>
-          <p className="text-gray-400">Organize and track your projects</p>
+    <div className="mt-10">
+      {/* Toolbar */}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-1 flex-wrap items-end gap-x-6 gap-y-4">
+          <label className="relative min-w-[14rem] flex-1 sm:max-w-xs">
+            <span className="sr-only">Search projects</span>
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-ink-faint"
+            />
+            <input
+              placeholder="Search projects or tags"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`${paperInput} pl-6`}
+            />
+          </label>
+          <label>
+            <span className="sr-only">Stage</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className={`${paperSelect} w-auto`}
+            >
+              <option value="all">All stages</option>
+              {STATUS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Priority</span>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className={`${paperSelect} w-auto`}
+            >
+              <option value="all">Any priority</option>
+              {PRIORITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <AddProjectDialog onAddProject={handleAddProject} />
       </div>
 
-      {/* Filters */}
-      <Card className="bg-gray-800/50 border-gray-700">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px] bg-gray-700 border-gray-600 text-white">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
-                  <SelectItem
-                    value="all"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    All Status
-                  </SelectItem>
-                  <SelectItem
-                    value="not-started"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    Not Started
-                  </SelectItem>
-                  <SelectItem
-                    value="in-progress"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    In Progress
-                  </SelectItem>
-                  <SelectItem
-                    value="done"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    Done
-                  </SelectItem>
-                  <SelectItem
-                    value="archive"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    Archive
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-[140px] bg-gray-700 border-gray-600 text-white">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
-                  <SelectItem
-                    value="all"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    All Priority
-                  </SelectItem>
-                  <SelectItem
-                    value="low"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    Low
-                  </SelectItem>
-                  <SelectItem
-                    value="medium"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    Medium
-                  </SelectItem>
-                  <SelectItem
-                    value="high"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    High
-                  </SelectItem>
-                  <SelectItem
-                    value="urgent"
-                    className="text-white hover:bg-gray-600"
-                  >
-                    Urgent
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {notice && (
+        <PaperBanner tone="note" message={notice} onDismiss={() => setNotice(null)} />
+      )}
+      {actionError && (
+        <PaperBanner message={actionError} onDismiss={() => setActionError(null)} />
+      )}
 
-      {/* Project Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-[600px]">
+      {/* Board */}
+      {isLoading ? (
+        <PaperLoading label="Opening your projects…" />
+      ) : loadError ? (
+        <PaperErrorState message={loadError} onRetry={loadProjects} />
+      ) : (
+      <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-6">
         {columns.map((column) => {
           const columnProjects = getProjectsByStatus(column.id);
           const stats = getColumnStats(column.id);
+          const isTarget = dragOverColumn === column.id;
 
           return (
-            <div
+            <section
               key={column.id}
-              className="h-full flex flex-col space-y-4"
-              style={{ height: "100%" }}
+              aria-label={column.title}
+              className="flex flex-col"
             >
-              {/* Column Header */}
-              <Card className="bg-gray-800/50 border-gray-700 chartreuse-shadow flex-shrink-0">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Badge className={column.color}>{column.title}</Badge>
-                    </CardTitle>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <BarChart3 className="h-3 w-3" />
-                      <span>{stats.count}</span>
-                    </div>
-                  </div>
-                  {stats.count > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      Avg Progress: {stats.avgProgress}%
-                    </div>
-                  )}
-                </CardHeader>
-              </Card>
+              <header className="flex items-baseline justify-between border-b border-ink pb-2">
+                <h2 className="font-ledger text-[11px] uppercase tracking-[0.18em] text-ink">
+                  {column.title}
+                  <span className="ml-2 text-ink-faint">{stats.count}</span>
+                </h2>
+                {stats.count > 0 && (
+                  <span className="font-ledger text-[10px] text-ink-faint">
+                    avg {stats.avgProgress}%
+                  </span>
+                )}
+              </header>
 
-              {/* Column Content */}
               <div
-                className="flex-1 space-y-3 min-h-0"
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, column.id)}
+                className={`mt-4 flex min-h-[14rem] flex-1 flex-col gap-3 rounded-[3px] p-1 transition-colors ${
+                  isTarget ? "bg-ink/[0.05] outline-dashed outline-1 outline-ink/30" : ""
+                }`}
+                onDragOver={(e) => {
+                  handleDragOver(e);
+                  if (dragOverColumn !== column.id) setDragOverColumn(column.id);
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setDragOverColumn(null);
+                  }
+                }}
+                onDrop={(e) => {
+                  handleDrop(e, column.id);
+                  setDragOverColumn(null);
+                }}
               >
                 {columnProjects.map((project) => (
                   <div
                     key={project.id}
                     draggable
                     onDragStart={(e) => handleDragStart(e, project)}
-                    className="cursor-move"
+                    onDragEnd={() => setDragOverColumn(null)}
+                    className={`cursor-grab active:cursor-grabbing ${
+                      draggedProject?.id === project.id ? "opacity-50" : ""
+                    }`}
                   >
                     <ProjectCard
                       project={project}
@@ -347,22 +340,20 @@ export const ProjectBoard: React.FC = () => {
                   </div>
                 ))}
 
-                {/* Empty State */}
                 {columnProjects.length === 0 && (
-                  <div className="flex flex-col items-center justify-center flex-1 text-center text-muted-foreground border-2 border-dashed border-gray-300 rounded-lg min-h-[400px]">
-                    <p className="text-sm">No projects</p>
-                    <p className="text-xs">
-                      Drag projects here or create new ones
+                  <div className="flex flex-1 items-center justify-center rounded-[3px] border border-dashed border-ink/20 px-4 py-10 text-center">
+                    <p className="font-display text-lg italic text-ink-faint">
+                      Nothing here yet
                     </p>
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>
+      )}
 
-      {/* Edit Project Dialog */}
       <EditProjectDialog
         project={editingProject}
         open={!!editingProject}
@@ -370,34 +361,15 @@ export const ProjectBoard: React.FC = () => {
         onUpdateProject={handleUpdateProject}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!deleteProjectId}
-        onOpenChange={() => setDeleteProjectId(null)}
-      >
-        <AlertDialogContent className="bg-gray-800 border-gray-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              Delete Project
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
-              Are you sure you want to delete this project? This action cannot
-              be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteProject}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        isOpen={!!deleteProjectId}
+        onClose={() => setDeleteProjectId(null)}
+        onConfirm={confirmDeleteProject}
+        title="Delete this project?"
+        message="It will be removed from the board for good."
+        confirmText="Delete"
+        cancelText="Keep it"
+      />
     </div>
   );
 };

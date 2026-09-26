@@ -1,100 +1,66 @@
 import React from "react";
-import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import type { FinanceStatsProps } from "@/services/types";
+import { EXPENSE_INK, INCOME_INK, formatINR } from "@/lib/paper";
 
 const FinanceStats: React.FC<FinanceStatsProps> = ({
   balance,
   totalIncome,
   totalExpenses,
 }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getBalanceColor = () => {
-    if (balance > 0) return "text-emerald-400";
-    if (balance < 0) return "text-red-400";
-    return "text-gray-400";
-  };
-
-  const getBalanceIconColor = () => {
-    if (balance > 0) return "from-emerald-500/20 to-teal-500/20";
-    if (balance < 0) return "from-red-500/20 to-pink-500/20";
-    return "from-gray-500/20 to-gray-600/20";
-  };
-
-  const getBalanceIconBg = () => {
-    if (balance > 0) return "text-emerald-400";
-    if (balance < 0) return "text-red-400";
-    return "text-gray-400";
-  };
+  const spentShare =
+    totalIncome > 0 ? Math.min(100, (totalExpenses / totalIncome) * 100) : 0;
 
   return (
-    <div className="space-y-6 mb-8">
-      {/* Balance Card - Full Width */}
-      <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div
-            className={`w-12 h-12 bg-gradient-to-r ${getBalanceIconColor()} rounded-xl flex items-center justify-center`}
-          >
-            <Wallet className={`w-6 h-6 ${getBalanceIconBg()}`} />
-          </div>
-          <span className="text-sm text-gray-400">Current Balance</span>
-        </div>
-        <div className="space-y-2">
-          <h3 className={`text-4xl font-bold ${getBalanceColor()}`}>
-            {formatCurrency(balance)}
-          </h3>
-          <p className="text-gray-400 text-sm">
-            {balance > 0
-              ? "You're in the green! 🎉"
-              : balance < 0
-              ? "You're in the red! ⚠️"
-              : "You're breaking even! ⚖️"}
-          </p>
-        </div>
+    <section aria-label="Totals" className="mt-12 grid gap-10 lg:grid-cols-12">
+      <div className="lg:col-span-5">
+        <p className="font-ledger text-[11px] uppercase tracking-[0.18em] text-ink-soft">
+          Balance · all time
+        </p>
+        <p className="mt-3 font-display text-6xl leading-none tabular-nums sm:text-7xl">
+          {balance < 0 ? "−" : ""}
+          {formatINR(Math.abs(balance))}
+        </p>
+        <p className="mt-3 font-display text-xl italic text-ink-soft">
+          {balance > 0
+            ? "More in than out."
+            : balance < 0
+            ? "More out than in."
+            : "Exactly even."}
+        </p>
       </div>
 
-      {/* Income and Expenses Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Income Card */}
-        <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-emerald-400" />
+      <dl className="grid grid-cols-2 gap-8 border-t border-ink pt-6 lg:col-span-7 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+        {[
+          { label: "Money in", value: totalIncome, ink: INCOME_INK, sign: "+" },
+          { label: "Money out", value: totalExpenses, ink: EXPENSE_INK, sign: "−" },
+        ].map((row) => (
+          <div key={row.label}>
+            <dt className="flex items-center gap-2 font-ledger text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: row.ink }}
+              />
+              {row.label}
+            </dt>
+            <dd className="mt-3 font-display text-4xl leading-none tabular-nums sm:text-5xl">
+              {row.sign}
+              {formatINR(row.value)}
+            </dd>
+          </div>
+        ))}
+        {totalIncome > 0 && (
+          <div className="col-span-2">
+            <div className="flex h-[6px] overflow-hidden bg-ink/10" aria-hidden="true">
+              <span style={{ width: `${spentShare}%`, backgroundColor: EXPENSE_INK }} />
             </div>
-            <span className="text-sm text-gray-400">Total Income</span>
+            <p className="mt-2 font-ledger text-[11px] text-ink-faint">
+              {Math.round((totalExpenses / totalIncome) * 100)}% of income spent
+            </p>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-3xl font-bold text-emerald-400">
-              {formatCurrency(totalIncome)}
-            </h3>
-            <p className="text-gray-400 text-sm">All time income</p>
-          </div>
-        </div>
-
-        {/* Expenses Card */}
-        <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-red-500/20 to-pink-500/20 rounded-xl flex items-center justify-center">
-              <TrendingDown className="w-6 h-6 text-red-400" />
-            </div>
-            <span className="text-sm text-gray-400">Total Expenses</span>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-3xl font-bold text-red-400">
-              {formatCurrency(totalExpenses)}
-            </h3>
-            <p className="text-gray-400 text-sm">All time expenses</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        )}
+      </dl>
+    </section>
   );
 };
 

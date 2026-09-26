@@ -1,18 +1,39 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  X,
-  Plus,
-  Trash2,
-  ArrowLeft,
-  ArrowRight,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
 import type {
   Exercise,
   WeeklySchedule,
   WorkoutPlan,
   WorkoutPlanModalProps,
 } from "@/services/types";
+import PaperDialog, { PaperButton } from "./paper/PaperDialog";
+import {
+  paperErrorText,
+  paperIconButton,
+  paperInput,
+  paperLabel,
+  paperTextarea,
+} from "@/lib/paper";
+
+const days = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+] as const;
+
+const emptySchedule = (): WeeklySchedule => ({
+  sunday: [],
+  monday: [],
+  tuesday: [],
+  wednesday: [],
+  thursday: [],
+  friday: [],
+  saturday: [],
+});
 
 const WorkoutPlanModal: React.FC<WorkoutPlanModalProps> = ({
   isOpen,
@@ -25,52 +46,18 @@ const WorkoutPlanModal: React.FC<WorkoutPlanModalProps> = ({
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(4);
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule>({
-    sunday: [],
-    monday: [],
-    tuesday: [],
-    wednesday: [],
-    thursday: [],
-    friday: [],
-    saturday: [],
-  });
-
-  const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule>(emptySchedule);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const exerciseRefs = useRef<{ [key: string]: HTMLLIElement | null }>({});
 
   useEffect(() => {
-    if (plan) {
-      setName(plan.name);
-      setDescription(plan.description);
-      setDuration(plan.duration);
-      setExercises(plan.exercises);
-      setWeeklySchedule(
-        plan.weeklySchedule || {
-          sunday: [],
-          monday: [],
-          tuesday: [],
-          wednesday: [],
-          thursday: [],
-          friday: [],
-          saturday: [],
-        }
-      );
-      setCurrentStep(1);
-    } else {
-      setName("");
-      setDescription("");
-      setDuration(4);
-      setExercises([]);
-      setWeeklySchedule({
-        sunday: [],
-        monday: [],
-        tuesday: [],
-        wednesday: [],
-        thursday: [],
-        friday: [],
-        saturday: [],
-      });
-      setCurrentStep(1);
-    }
+    setName(plan?.name ?? "");
+    setDescription(plan?.description ?? "");
+    setDuration(plan?.duration ?? 4);
+    setExercises(plan?.exercises ?? []);
+    setWeeklySchedule(plan?.weeklySchedule || emptySchedule());
+    setCurrentStep(1);
+    setStepError(null);
   }, [plan, isOpen]);
 
   const addExercise = () => {
@@ -83,84 +70,44 @@ const WorkoutPlanModal: React.FC<WorkoutPlanModalProps> = ({
       notes: "",
     };
     setExercises([...exercises, newExercise]);
-
-    // Scroll to the new exercise after it's added
     setTimeout(() => {
-      const newExerciseElement = exerciseRefs.current[newExercise.id];
-      if (newExerciseElement) {
-        newExerciseElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
+      const el = exerciseRefs.current[newExercise.id];
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.querySelector("input")?.focus();
     }, 100);
   };
 
-  const updateExercise = (id: string, updates: Partial<Exercise>) => {
-    setExercises(
-      exercises.map((exercise) =>
-        exercise.id === id ? { ...exercise, ...updates } : exercise
-      )
-    );
-  };
+  const updateExercise = (id: string, updates: Partial<Exercise>) =>
+    setExercises(exercises.map((ex) => (ex.id === id ? { ...ex, ...updates } : ex)));
 
   const removeExercise = (id: string) => {
-    setExercises(exercises.filter((exercise) => exercise.id !== id));
-    // Also remove this exercise from the weekly schedule
-    setWeeklySchedule((prev) => ({
-      sunday: prev.sunday.filter((exerciseId) => exerciseId !== id),
-      monday: prev.monday.filter((exerciseId) => exerciseId !== id),
-      tuesday: prev.tuesday.filter((exerciseId) => exerciseId !== id),
-      wednesday: prev.wednesday.filter((exerciseId) => exerciseId !== id),
-      thursday: prev.thursday.filter((exerciseId) => exerciseId !== id),
-      friday: prev.friday.filter((exerciseId) => exerciseId !== id),
-      saturday: prev.saturday.filter((exerciseId) => exerciseId !== id),
-    }));
+    setExercises(exercises.filter((ex) => ex.id !== id));
+    setWeeklySchedule((prev) => {
+      const next = { ...prev };
+      for (const day of days) next[day] = prev[day].filter((exId) => exId !== id);
+      return next;
+    });
   };
 
-  const toggleExerciseForDay = (
-    day: keyof WeeklySchedule,
-    exerciseId: string
-  ) => {
+  const toggleExerciseForDay = (day: keyof WeeklySchedule, exerciseId: string) =>
     setWeeklySchedule((prev) => ({
       ...prev,
       [day]: prev[day].includes(exerciseId)
         ? prev[day].filter((id) => id !== exerciseId)
         : [...prev[day], exerciseId],
     }));
-  };
 
   const handleNextStep = () => {
-    if (currentStep === 1) {
-      if (!name.trim()) {
-        alert("Please enter a plan name");
-        return;
-      }
-      if (exercises.length === 0) {
-        alert("Please add at least one exercise");
-        return;
-      }
-      // Check if all exercises have names
-      const unnamedExercises = exercises.filter((ex) => !ex.name.trim());
-      if (unnamedExercises.length > 0) {
-        alert("Please provide names for all exercises");
-        return;
-      }
-      setCurrentStep(2);
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep === 2) {
-      setCurrentStep(1);
-    }
+    if (!name.trim()) return setStepError("Give the plan a name.");
+    if (exercises.length === 0) return setStepError("Add at least one exercise.");
+    if (exercises.some((ex) => !ex.name.trim()))
+      return setStepError("Every exercise needs a name.");
+    setStepError(null);
+    setCurrentStep(2);
   };
 
   const handleSave = () => {
-    if (currentStep === 1) {
-      handleNextStep();
-      return;
-    }
+    if (currentStep === 1) return handleNextStep();
 
     const workoutPlan: WorkoutPlan = {
       id: plan?.id || Date.now().toString(),
@@ -171,360 +118,223 @@ const WorkoutPlanModal: React.FC<WorkoutPlanModalProps> = ({
       duration,
       createdAt: plan?.createdAt || new Date().toISOString(),
     };
-
     onSave(workoutPlan);
     onClose();
   };
 
+  const numberField = (
+    exercise: Exercise,
+    key: "sets" | "reps" | "duration",
+    label: string,
+    min: number
+  ) => (
+    <div>
+      <label htmlFor={`${exercise.id}-${key}`} className={paperLabel}>
+        {label}
+      </label>
+      <input
+        id={`${exercise.id}-${key}`}
+        type="number"
+        min={min}
+        value={exercise[key] || 0}
+        onChange={(e) => updateExercise(exercise.id, { [key]: parseInt(e.target.value) || 0 })}
+        className={`${paperInput} font-ledger tabular-nums`}
+      />
+    </div>
+  );
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-gray-800 rounded-xl border border-gray-700/30 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-700/30">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-white">
-                  {plan ? "Edit Workout Plan" : "Create Workout Plan"}
-                </h2>
-                {/* Step Indicator */}
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      currentStep >= 1
-                        ? "bg-gradient-to-r from-red-600 to-pink-600 text-white"
-                        : "bg-gray-600 text-gray-400"
-                    }`}
-                  >
-                    1
-                  </div>
-                  <div
-                    className={`w-2 h-0.5 ${
-                      currentStep >= 2
-                        ? "bg-gradient-to-r from-red-600 to-pink-600"
-                        : "bg-gray-600"
-                    }`}
-                  ></div>
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      currentStep >= 2
-                        ? "bg-gradient-to-r from-red-600 to-pink-600 text-white"
-                        : "bg-gray-600 text-gray-400"
-                    }`}
-                  >
-                    2
-                  </div>
-                </div>
+    <PaperDialog
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      title={plan ? "Edit workout plan" : "A new workout plan"}
+      description={
+        currentStep === 1
+          ? "Step 1 of 2 · the plan and its exercises"
+          : "Step 2 of 2 · which exercises go on which day"
+      }
+      size="lg"
+    >
+      <div className="space-y-8">
+        {currentStep === 1 ? (
+          <>
+            <div className="grid gap-6 sm:grid-cols-[1fr_8rem]">
+              <div>
+                <label htmlFor="workout-name" className={paperLabel}>
+                  Name
+                </label>
+                <input
+                  id="workout-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={`${paperInput} text-lg`}
+                  placeholder="Strength, three days a week"
+                  autoFocus
+                />
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-              >
-                <X size={24} />
-              </button>
+              <div>
+                <label htmlFor="workout-duration" className={paperLabel}>
+                  Weeks
+                </label>
+                <input
+                  id="workout-duration"
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
+                  min="1"
+                  max="52"
+                  className={`${paperInput} font-ledger tabular-nums`}
+                />
+              </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-6">
-              {currentStep === 1 ? (
-                // Step 1: Basic Information and Exercises
-                <>
-                  {/* Basic Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Plan Name
-                      </label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                        placeholder="Enter plan name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Duration (weeks)
-                      </label>
-                      <input
-                        type="number"
-                        value={duration}
-                        onChange={(e) =>
-                          setDuration(parseInt(e.target.value) || 1)
-                        }
-                        min="1"
-                        max="52"
-                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                      />
-                    </div>
-                  </div>
+            <div>
+              <label htmlFor="workout-description" className={paperLabel}>
+                Notes
+              </label>
+              <textarea
+                id="workout-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className={`${paperTextarea} mt-2 resize-none`}
+                placeholder="Optional"
+              />
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                      placeholder="Describe your workout plan"
-                    />
-                  </div>
-
-                  {/* Exercises */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-white">
-                        Exercises
-                      </h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      {exercises.map((exercise, index) => (
-                        <motion.div
-                          key={exercise.id}
-                          ref={(el) => (exerciseRefs.current[exercise.id] = el)}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-white font-medium">
-                              Exercise {index + 1}
-                            </h4>
-                            <button
-                              onClick={() => removeExercise(exercise.id)}
-                              className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-200"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Exercise Name
-                              </label>
-                              <input
-                                type="text"
-                                value={exercise.name}
-                                onChange={(e) =>
-                                  updateExercise(exercise.id, {
-                                    name: e.target.value,
-                                  })
-                                }
-                                className="w-full px-3 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                                placeholder="e.g., Push-ups"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Sets
-                              </label>
-                              <input
-                                type="number"
-                                value={exercise.sets}
-                                onChange={(e) =>
-                                  updateExercise(exercise.id, {
-                                    sets: parseInt(e.target.value) || 0,
-                                  })
-                                }
-                                min="1"
-                                className="w-full px-3 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Reps
-                              </label>
-                              <input
-                                type="number"
-                                value={exercise.reps}
-                                onChange={(e) =>
-                                  updateExercise(exercise.id, {
-                                    reps: parseInt(e.target.value) || 0,
-                                  })
-                                }
-                                min="1"
-                                className="w-full px-3 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Duration (minutes)
-                              </label>
-                              <input
-                                type="number"
-                                value={exercise.duration || 0}
-                                onChange={(e) =>
-                                  updateExercise(exercise.id, {
-                                    duration: parseInt(e.target.value) || 0,
-                                  })
-                                }
-                                min="0"
-                                className="w-full px-3 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-300 mb-1">
-                              Notes (Optional)
-                            </label>
-                            <textarea
-                              value={exercise.notes || ""}
-                              onChange={(e) =>
-                                updateExercise(exercise.id, {
-                                  notes: e.target.value,
-                                })
-                              }
-                              rows={2}
-                              className="w-full px-3 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all duration-200"
-                              placeholder="Any additional notes..."
-                            />
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* Add Exercise Button - Now positioned after the exercises list */}
-                    <div className="mt-6">
+            <div>
+              <p className={`${paperLabel} border-b border-ink pb-2`}>Exercises</p>
+              <ol>
+                {exercises.map((exercise, index) => (
+                  <li
+                    key={exercise.id}
+                    ref={(el) => (exerciseRefs.current[exercise.id] = el)}
+                    className="border-b border-paper-rule py-5"
+                  >
+                    <div className="flex items-end gap-3">
+                      <span className="pb-2 font-ledger text-[11px] text-ink-faint">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="flex-1">
+                        <label htmlFor={`${exercise.id}-name`} className="sr-only">
+                          Exercise name
+                        </label>
+                        <input
+                          id={`${exercise.id}-name`}
+                          type="text"
+                          value={exercise.name}
+                          onChange={(e) => updateExercise(exercise.id, { name: e.target.value })}
+                          className={`${paperInput} text-lg`}
+                          placeholder="e.g. Push-ups"
+                        />
+                      </div>
                       <button
-                        onClick={addExercise}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
+                        type="button"
+                        onClick={() => removeExercise(exercise.id)}
+                        className={`${paperIconButton} hover:text-clay`}
+                        aria-label={`Remove ${exercise.name || `exercise ${index + 1}`}`}
                       >
-                        <Plus size={16} />
-                        Add Exercise
+                        <Trash2 size={15} />
                       </button>
                     </div>
+                    <div className="mt-4 grid grid-cols-3 gap-4 pl-7">
+                      {numberField(exercise, "sets", "Sets", 1)}
+                      {numberField(exercise, "reps", "Reps", 1)}
+                      {numberField(exercise, "duration", "Minutes", 0)}
+                    </div>
+                    <div className="mt-4 pl-7">
+                      <label htmlFor={`${exercise.id}-notes`} className="sr-only">
+                        Notes
+                      </label>
+                      <input
+                        id={`${exercise.id}-notes`}
+                        value={exercise.notes || ""}
+                        onChange={(e) => updateExercise(exercise.id, { notes: e.target.value })}
+                        className={`${paperInput} text-sm`}
+                        placeholder="Notes (optional)"
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <PaperButton type="button" tone="quiet" onClick={addExercise} className="mt-4">
+                <Plus size={16} />
+                Add exercise
+              </PaperButton>
+            </div>
+          </>
+        ) : (
+          <ol className="border-t border-ink">
+            {days.map((day) => (
+              <li key={day} className="border-b border-paper-rule py-4">
+                <fieldset>
+                  <legend className="font-display text-xl capitalize">{day}</legend>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {exercises.map((exercise) => {
+                      const checked = weeklySchedule[day].includes(exercise.id);
+                      return (
+                        <label
+                          key={exercise.id}
+                          className={`cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-clay ${
+                            checked
+                              ? "border-ink bg-ink text-paper"
+                              : "border-ink/25 text-ink-soft hover:border-ink hover:text-ink"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleExerciseForDay(day, exercise.id)}
+                            className="sr-only"
+                          />
+                          {exercise.name}
+                          <span className="ml-1.5 font-ledger text-[10px] opacity-70">
+                            {exercise.sets}×{exercise.reps}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
-                </>
-              ) : (
-                // Step 2: Weekly Schedule
+                </fieldset>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {stepError && (
+          <p role="alert" className={paperErrorText}>
+            {stepError}
+          </p>
+        )}
+
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <PaperButton type="button" tone="quiet" onClick={onClose}>
+            Cancel
+          </PaperButton>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            {currentStep === 2 && (
+              <PaperButton type="button" tone="quiet" onClick={() => setCurrentStep(1)}>
+                <ArrowLeft size={16} />
+                Back
+              </PaperButton>
+            )}
+            <PaperButton type="button" onClick={handleSave}>
+              {currentStep === 1 ? (
                 <>
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-white mb-2">
-                      Assign Exercises to Days
-                    </h3>
-                    <p className="text-gray-400">
-                      Select which exercises you want to do on each day of the
-                      week
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    {(
-                      [
-                        "sunday",
-                        "monday",
-                        "tuesday",
-                        "wednesday",
-                        "thursday",
-                        "friday",
-                        "saturday",
-                      ] as const
-                    ).map((day) => (
-                      <div
-                        key={day}
-                        className="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30"
-                      >
-                        <h4 className="text-lg font-semibold text-white mb-4 capitalize">
-                          {day}
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                          {exercises.map((exercise) => (
-                            <label
-                              key={exercise.id}
-                              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                                weeklySchedule[day].includes(exercise.id)
-                                  ? "bg-gradient-to-r from-red-600/20 to-pink-600/20 border-red-500/50"
-                                  : "bg-gray-600/30 border-gray-500/50 hover:bg-gray-600/50"
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={weeklySchedule[day].includes(
-                                  exercise.id
-                                )}
-                                onChange={() =>
-                                  toggleExerciseForDay(day, exercise.id)
-                                }
-                                className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2"
-                              />
-                              <div className="flex-1">
-                                <div className="font-medium text-white">
-                                  {exercise.name}
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                  {exercise.sets} sets × {exercise.reps} reps
-                                  {exercise.duration &&
-                                    exercise.duration > 0 &&
-                                    ` @ ${exercise.duration}min`}
-                                </div>
-                              </div>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  Next: the week
+                  <ArrowRight size={16} />
                 </>
+              ) : plan ? (
+                "Save plan"
+              ) : (
+                "Create plan"
               )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between gap-4 p-6 border-t border-gray-700/30">
-              <button
-                onClick={onClose}
-                className="px-6 py-3 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg font-medium transition-all duration-200"
-              >
-                Cancel
-              </button>
-
-              <div className="flex gap-2">
-                {currentStep === 2 && (
-                  <button
-                    onClick={handlePreviousStep}
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg font-medium transition-all duration-200 hover:bg-gray-600/50"
-                  >
-                    <ArrowLeft size={16} />
-                    Previous
-                  </button>
-                )}
-
-                <button
-                  onClick={handleSave}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
-                >
-                  {currentStep === 1 ? (
-                    <>
-                      Next Step
-                      <ArrowRight size={16} />
-                    </>
-                  ) : (
-                    <>{plan ? "Update Plan" : "Create Plan"}</>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </PaperButton>
+          </div>
+        </div>
+      </div>
+    </PaperDialog>
   );
 };
 

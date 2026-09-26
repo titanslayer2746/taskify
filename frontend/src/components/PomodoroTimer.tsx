@@ -1,74 +1,50 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw, X } from "lucide-react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import type { PomodoroTimerProps } from "@/services/types";
+import { PaperButton } from "./paper/PaperDialog";
 
-const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
-  isOpen,
-  onClose,
-  settings,
-}) => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+type Mode = "work" | "break" | "longBreak";
+
+const modeLabels: Record<Mode, string> = {
+  work: "Focus",
+  break: "Short break",
+  longBreak: "Long break",
+};
+
+const modeSetting = {
+  work: "workTime",
+  break: "breakTime",
+  longBreak: "longBreakTime",
+} as const;
+
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
+};
+
+const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ settings }) => {
+  const [timeLeft, setTimeLeft] = useState(settings.workTime * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [mode, setMode] = useState<"work" | "break" | "longBreak">("work");
+  const [mode, setMode] = useState<Mode>("work");
   const [cycles, setCycles] = useState(0);
-
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
+  const total = settings[modeSetting[mode]] * 60;
+  const progress = total > 0 ? (total - timeLeft) / total : 0;
+  const untouched = !isRunning && timeLeft === total;
 
-  const getModeColor = () => {
-    switch (mode) {
-      case "work":
-        return "from-red-500 to-pink-500";
-      case "break":
-        return "from-green-500 to-emerald-500";
-      case "longBreak":
-        return "from-blue-500 to-cyan-500";
-      default:
-        return "from-gray-500 to-gray-600";
+  // Pick up new lengths from settings while the current session hasn't started.
+  const previousTotal = useRef(total);
+  useEffect(() => {
+    if (!isRunning && timeLeft === previousTotal.current) {
+      setTimeLeft(total);
     }
-  };
-
-  const getModeIcon = () => {
-    switch (mode) {
-      case "work":
-        return "🔥";
-      case "break":
-        return "☕";
-      case "longBreak":
-        return "🌟";
-      default:
-        return "⏰";
-    }
-  };
-
-  const getModeLabel = () => {
-    switch (mode) {
-      case "work":
-        return "Focus Time";
-      case "break":
-        return "Short Break";
-      case "longBreak":
-        return "Long Break";
-      default:
-        return "Timer";
-    }
-  };
-
-  const startTimer = () => {
-    setIsRunning(true);
-  };
-
-  const pauseTimer = () => {
-    setIsRunning(false);
-  };
+    previousTotal.current = total;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total]);
 
   const resetTimer = () => {
     setIsRunning(false);
@@ -98,20 +74,17 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            // Timer finished
             if (mode === "work") {
               if ((cycles + 1) % settings.longBreakInterval === 0) {
                 setMode("longBreak");
                 return settings.longBreakTime * 60;
-              } else {
-                setMode("break");
-                return settings.breakTime * 60;
               }
-            } else {
-              setMode("work");
-              setCycles(cycles + 1);
-              return settings.workTime * 60;
+              setMode("break");
+              return settings.breakTime * 60;
             }
+            setMode("work");
+            setCycles(cycles + 1);
+            return settings.workTime * 60;
           }
           return prev - 1;
         });
@@ -121,191 +94,125 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
     }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isRunning, timeLeft, mode, cycles, settings]);
 
-  const progress =
-    (settings[
-      mode === "work"
-        ? "workTime"
-        : mode === "break"
-        ? "breakTime"
-        : "longBreakTime"
-    ] *
-      60 -
-      timeLeft) /
-    (settings[
-      mode === "work"
-        ? "workTime"
-        : mode === "break"
-        ? "breakTime"
-        : "longBreakTime"
-    ] *
-      60);
+  // Show the countdown in the browser tab while it runs.
+  useEffect(() => {
+    const original = document.title;
+    if (isRunning) document.title = `${formatTime(timeLeft)} · ${modeLabels[mode]}`;
+    return () => {
+      document.title = original;
+    };
+  }, [isRunning, timeLeft, mode]);
 
-  if (!isOpen) return null;
+  const r = 140;
+  const circumference = 2 * Math.PI * r;
+  const ticks = 60;
+  const sessionInSet = cycles % settings.longBreakInterval;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
-        onClick={onClose}
-      />
+    <div className="flex flex-col items-center">
+      <ol className="flex gap-6" aria-label="Session type">
+        {(Object.keys(modeLabels) as Mode[]).map((m) => (
+          <li
+            key={m}
+            aria-current={mode === m ? "step" : undefined}
+            className={`relative pb-1 text-[15px] ${
+              mode === m
+                ? "text-ink after:absolute after:inset-x-0 after:-bottom-px after:h-[2px] after:bg-clay"
+                : "text-ink-faint"
+            }`}
+          >
+            {modeLabels[m]}
+          </li>
+        ))}
+      </ol>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 mx-4 w-full max-w-sm sm:max-w-md lg:max-w-lg shadow-2xl border border-gray-700/50"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-cyan-900/20 rounded-2xl sm:rounded-3xl"></div>
-
-        <div className="relative">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-white">
-              Pomodoro Timer
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-            >
-              <X size={18} className="sm:w-5 sm:h-5" />
-            </button>
-          </div>
-
-          {/* Timer Display */}
-          <div className="text-center mb-6 sm:mb-8">
-            <div className="mb-3 sm:mb-4">
-              <div className="text-2xl sm:text-3xl lg:text-4xl mb-1 sm:mb-2">
-                {getModeIcon()}
-              </div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-300 mb-1">
-                {getModeLabel()}
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-500">
-                Cycle {cycles + 1} • {mode === "work" ? "Focus" : "Break"}
-              </p>
-            </div>
-
-            {/* Timer Circle */}
-            <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 mx-auto mb-4 sm:mb-6">
-              <svg
-                className="w-full h-full transform -rotate-90"
-                viewBox="0 0 100 100"
-              >
-                {/* Background Circle */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="rgba(75, 85, 99, 0.3)"
-                  strokeWidth="3"
-                />
-                {/* Progress Circle */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke={`url(#gradient-${mode})`}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 45}`}
-                  strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress)}`}
-                  className="transition-all duration-1000 ease-linear"
-                />
-                <defs>
-                  <linearGradient
-                    id="gradient-work"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="100%"
-                  >
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="100%" stopColor="#ec4899" />
-                  </linearGradient>
-                  <linearGradient
-                    id="gradient-break"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="100%"
-                  >
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#059669" />
-                  </linearGradient>
-                  <linearGradient
-                    id="gradient-longBreak"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="100%"
-                  >
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#06b6d4" />
-                  </linearGradient>
-                </defs>
-              </svg>
-
-              {/* Time Display */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1">
-                    {formatTime(timeLeft)}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-400">
-                    {Math.ceil(progress * 100)}% complete
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center justify-center gap-2 sm:gap-4">
-              <button
-                onClick={resetTimer}
-                className="p-2 sm:p-3 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                title="Reset Timer"
-              >
-                <RotateCcw size={16} className="sm:w-5 sm:h-5" />
-              </button>
-
-              <button
-                onClick={isRunning ? pauseTimer : startTimer}
-                className={`p-3 sm:p-4 rounded-full transition-all duration-200 ${
-                  isRunning
-                    ? "bg-red-500 hover:bg-red-600 text-white"
-                    : "bg-green-500 hover:bg-green-600 text-white"
-                }`}
-                title={isRunning ? "Pause" : "Start"}
-              >
-                {isRunning ? (
-                  <Pause size={20} className="sm:w-6 sm:h-6" />
-                ) : (
-                  <Play size={20} className="sm:w-6 sm:h-6" />
-                )}
-              </button>
-
-              <button
-                onClick={skipTimer}
-                className="p-2 sm:p-3 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                title="Skip Timer"
-              >
-                <RotateCcw
-                  size={16}
-                  className="sm:w-5 sm:h-5 transform scale-x-[-1]"
-                />
-              </button>
-            </div>
-          </div>
+      <div className="relative mt-10 aspect-square w-full max-w-[340px]">
+        <svg viewBox="0 0 320 320" className="h-full w-full" aria-hidden="true">
+          <circle cx="160" cy="160" r={r} fill="none" stroke="#D3CDB7" strokeWidth="1" />
+          {Array.from({ length: ticks }).map((_, i) => {
+            const a = (i / ticks) * Math.PI * 2 - Math.PI / 2;
+            const major = i % 5 === 0;
+            return (
+              <line
+                key={i}
+                x1={160 + Math.cos(a) * 150}
+                y1={160 + Math.sin(a) * 150}
+                x2={160 + Math.cos(a) * (major ? 158 : 154)}
+                y2={160 + Math.sin(a) * (major ? 158 : 154)}
+                stroke="#1F3326"
+                strokeOpacity={major ? 0.9 : 0.35}
+                strokeWidth={major ? 1.4 : 0.8}
+              />
+            );
+          })}
+          <circle
+            cx="160"
+            cy="160"
+            r={r}
+            fill="none"
+            stroke={mode === "work" ? "#B8643C" : "#1F3326"}
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={`${circumference * progress} ${circumference}`}
+            transform="rotate(-90 160 160)"
+            className="transition-[stroke-dasharray] duration-1000 ease-linear"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span
+            className="font-ledger text-6xl tabular-nums tracking-tight sm:text-7xl"
+            role="timer"
+            aria-live="off"
+          >
+            {formatTime(timeLeft)}
+          </span>
+          <span className="mt-3 font-ledger text-[11px] uppercase tracking-[0.18em] text-ink-faint">
+            {modeLabels[mode]} · {Math.floor(progress * 100)}%
+          </span>
         </div>
-      </motion.div>
+      </div>
+
+      <div className="mt-10 flex items-center gap-3">
+        <PaperButton tone="quiet" onClick={resetTimer} aria-label="Reset timer">
+          <RotateCcw size={16} />
+          <span className="hidden sm:inline">Reset</span>
+        </PaperButton>
+        <PaperButton
+          onClick={() => setIsRunning((running) => !running)}
+          className="min-w-[9rem] py-3 text-base"
+        >
+          {isRunning ? <Pause size={18} /> : <Play size={18} />}
+          {isRunning ? "Pause" : untouched ? "Start" : "Resume"}
+        </PaperButton>
+        <PaperButton
+          tone="quiet"
+          onClick={skipTimer}
+          aria-label={`Skip to ${mode === "work" ? "break" : "focus"}`}
+        >
+          <SkipForward size={16} />
+          <span className="hidden sm:inline">Skip</span>
+        </PaperButton>
+      </div>
+
+      <div className="mt-10 flex items-center gap-3" aria-label="Sessions">
+        <span className="flex gap-1.5">
+          {Array.from({ length: settings.longBreakInterval }).map((_, i) => (
+            <span
+              key={i}
+              className={`h-3 w-3 rounded-full border border-clay ${
+                i < sessionInSet ? "bg-clay" : ""
+              }`}
+            />
+          ))}
+        </span>
+        <span className="font-ledger text-[11px] uppercase tracking-[0.14em] text-ink-faint">
+          {cycles} {cycles === 1 ? "session" : "sessions"} done
+        </span>
+      </div>
     </div>
   );
 };

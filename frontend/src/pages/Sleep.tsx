@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
+import PaperPage, {
+  PaperErrorState,
+  PaperLoading,
+} from "../components/paper/PaperPage";
 import SleepTracker from "../components/SleepTracker";
 import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
@@ -105,65 +108,32 @@ const Sleep = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        {fetchSleepEntries.loading ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading sleep data...</p>
-            </div>
-          </div>
-        ) : fetchSleepEntries.error ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-red-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold mb-2">
-                Error loading sleep data
-              </h3>
-              <p className="text-gray-400 mb-6 max-w-md">
-                {fetchSleepEntries.error.message ||
-                  "Failed to load sleep data. Please try again."}
-              </p>
-              <button
-                onClick={handleFetchSleepEntries}
-                className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        ) : (
-          <SleepTracker
-            sleepEntries={sleepEntries}
-            onAddSleepEntry={handleAddSleepEntry}
-            onUpdateSleepEntry={handleUpdateSleepEntry}
-            onDeleteSleepEntry={handleDeleteSleepEntry}
-            onAddJournalEntry={handleAddJournalEntry}
-            isLoading={
-              createSleepEntry.loading ||
-              updateSleepEntry.loading ||
-              deleteSleepEntry.loading
-            }
-          />
-        )}
-      </div>
-    </div>
+    <PaperPage number="06" title="Sleep" subtitle="Bedtimes, wake-ups, and how it felt.">
+      {fetchSleepEntries.loading ? (
+        <PaperLoading label="Opening your nights…" />
+      ) : fetchSleepEntries.error ? (
+        <PaperErrorState
+          message={
+            fetchSleepEntries.error.message ||
+            "Your sleep log didn't load. Please try again."
+          }
+          onRetry={handleFetchSleepEntries}
+        />
+      ) : (
+        <SleepTracker
+          sleepEntries={sleepEntries}
+          onAddSleepEntry={handleAddSleepEntry}
+          onUpdateSleepEntry={handleUpdateSleepEntry}
+          onDeleteSleepEntry={handleDeleteSleepEntry}
+          onAddJournalEntry={handleAddJournalEntry}
+          isLoading={
+            createSleepEntry.loading ||
+            updateSleepEntry.loading ||
+            deleteSleepEntry.loading
+          }
+        />
+      )}
+    </PaperPage>
   );
 };
 

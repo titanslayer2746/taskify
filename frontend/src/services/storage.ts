@@ -326,7 +326,7 @@ export const clearAuthData = (): void => {
 };
 
 // Check if user is authenticated with token validation
-export const isAuthenticated = (): boolean => {
+const isAuthenticated = (): boolean => {
   const hasToken = tokenStorage.hasToken();
   const hasUser = userStorage.hasUser();
   const isExpired = tokenStorage.isTokenExpired();

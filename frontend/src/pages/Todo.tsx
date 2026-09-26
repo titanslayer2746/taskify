@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import TodoList from "../components/TodoList";
-import Navbar from "../components/Navbar";
+import PaperPage, {
+  PaperBanner,
+  PaperErrorState,
+  PaperLoading,
+} from "../components/paper/PaperPage";
+import { todayDateline } from "@/lib/paper";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import {
-  CheckSquare,
-  Clock,
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
 import { apiService } from "@/services/api";
 import { Todo } from "@/services/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -313,94 +311,40 @@ const TodoPage = () => {
     }
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-400 mb-4" />
-            <p className="text-gray-400">Loading your todos...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error && todos.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">
-              Failed to load todos
-            </h3>
-            <p className="text-gray-400 text-center mb-6 max-w-md">{error}</p>
-            <button
-              onClick={fetchTodos}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const closeDeleteConfirmation = () =>
+    setDeleteConfirmation({ isOpen: false, todoId: null, todoTitle: "" });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <Navbar />
+    <PaperPage number="01" title="Tasks" subtitle={todayDateline()} width="narrow">
+      {isLoading ? (
+        <PaperLoading label="Opening your list…" />
+      ) : error && todos.length === 0 ? (
+        <PaperErrorState message={error} onRetry={fetchTodos} />
+      ) : (
+        <>
+          {error && (
+            <PaperBanner message={error} onDismiss={() => setError(null)} />
+          )}
+          <TodoList
+            todos={todos}
+            onToggleTodo={toggleTodo}
+            onCreateTodo={createTodo}
+            onDeleteClick={handleDeleteClick}
+          />
+        </>
+      )}
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Error banner */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <span className="text-red-400">{error}</span>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-400 hover:text-red-300 transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        <TodoList
-          todos={todos}
-          onToggleTodo={toggleTodo}
-          onDeleteTodo={deleteTodo}
-          onCreateTodo={createTodo}
-          onDeleteClick={handleDeleteClick}
-        />
-      </div>
-
-      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={deleteConfirmation.isOpen}
-        onClose={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            todoId: null,
-            todoTitle: "",
-          })
-        }
+        onClose={closeDeleteConfirmation}
         onConfirm={handleConfirmDelete}
-        title="Delete Todo"
-        message={`Are you sure you want to delete "${deleteConfirmation.todoTitle}"? This action cannot be undone.`}
+        title="Delete this task?"
+        message={`“${deleteConfirmation.todoTitle}” will be removed for good.`}
         confirmText="Delete"
-        cancelText="Cancel"
+        cancelText="Keep it"
         type="danger"
       />
-    </div>
+    </PaperPage>
   );
 };
 

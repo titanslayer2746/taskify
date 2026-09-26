@@ -4,89 +4,36 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Paper & Ink (Forest & moss) */
+    --background: 47 33% 92%;
+    --foreground: 141 24% 16%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 48 45% 96%;
+    --card-foreground: 141 24% 16%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 48 45% 96%;
+    --popover-foreground: 141 24% 16%;
 
-    --primary: 90 100% 50%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 141 24% 16%;
+    --primary-foreground: 47 33% 92%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 47 32% 86%;
+    --secondary-foreground: 141 24% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 47 32% 86%;
+    --muted-foreground: 110 10% 35%;
 
-    --accent: 90 100% 50%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 47 32% 86%;
+    --accent-foreground: 141 24% 16%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 19 51% 48%;
+    --destructive-foreground: 48 45% 96%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 47 24% 77%;
+    --input: 47 18% 70%;
+    --ring: 19 51% 48%;
 
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 90 100% 50%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 90 100% 50%;
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 0.25rem;
   }
 }
 
@@ -96,121 +43,48 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-paper text-foreground antialiased;
   }
 }
 
+/* Paper & Ink utilities */
 @layer components {
-  .chartreuse-gradient {
-    background: linear-gradient(135deg, #7fff00 0%, #adff2f 50%, #9acd32 100%);
-    color: #000000;
+  .paper-grain {
+    background-color: #f1eee3;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .28 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  .chartreuse-gradient:hover {
-    background: linear-gradient(135deg, #8fff0a 0%, #bdff3f 50%, #a9dd42 100%);
-    color: #000000;
-  }
-
-  .chartreuse-gradient-text {
-    background: linear-gradient(135deg, #7fff00 0%, #adff2f 50%, #9acd32 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .chartreuse-border {
-    border-color: #7fff00;
-  }
-
-  .chartreuse-shadow {
-    box-shadow: 0 4px 14px 0 rgba(127, 255, 0, 0.4);
-  }
-
-  .chartreuse-glow {
-    box-shadow: 0 0 20px rgba(127, 255, 0, 0.5);
-  }
-
-  /* Royal design utilities */
-  .grain-texture {
-    background-image: radial-gradient(
-        circle at 20% 50%,
-        rgba(120, 119, 198, 0.3) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 80% 20%,
-        rgba(255, 119, 198, 0.3) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 40% 80%,
-        rgba(120, 219, 255, 0.3) 0%,
-        transparent 50%
-      ),
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
-  }
-
-  .royal-gradient {
-    background: linear-gradient(
-      135deg,
-      rgba(15, 15, 25, 0.95) 0%,
-      rgba(25, 25, 40, 0.9) 25%,
-      rgba(20, 20, 35, 0.95) 50%,
-      rgba(30, 25, 45, 0.9) 75%,
-      rgba(15, 15, 25, 0.95) 100%
+  .paper-ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      #d8d2bd 31px,
+      #d8d2bd 32px
     );
   }
 
-  .royal-card {
-    background: linear-gradient(
-      135deg,
-      rgba(20, 20, 30, 0.8) 0%,
-      rgba(25, 25, 35, 0.7) 50%,
-      rgba(20, 20, 30, 0.8) 100%
-    );
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .paper-leader {
+    flex: 1;
+    min-width: 1.5rem;
+    border-bottom: 1.5px dotted #a9ae9c;
+    transform: translateY(-0.35em);
   }
 
-  .pill-button {
-    border-radius: 9999px;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  .ink-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 100% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.25s ease;
+  }
+  .ink-link:hover {
+    background-size: 0 1px;
+    background-position: 100% 100%;
   }
 
-  .pill-button-primary {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    color: #1a1a1a;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  }
-
-  .pill-button-primary:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  }
-
-  .pill-button-secondary {
-    background: linear-gradient(
-      135deg,
-      rgba(40, 40, 50, 0.8) 0%,
-      rgba(35, 35, 45, 0.9) 100%
-    );
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  }
-
-  .pill-button-secondary:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(50, 50, 60, 0.8) 0%,
-      rgba(45, 45, 55, 0.9) 100%
-    );
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  .paper-focus:focus-visible {
+    outline: 2px solid #b8643c;
+    outline-offset: 3px;
   }
 }

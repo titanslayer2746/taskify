@@ -1,24 +1,20 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import React, { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import PaperPage, {
+  PaperEmpty,
+  PaperErrorState,
+  PaperLoading,
+} from "../components/paper/PaperPage";
+import { PaperButton } from "../components/paper/PaperDialog";
+import { paperIconButton, paperKicker, paperSheet, todayDateline } from "@/lib/paper";
 import WorkoutPlanModal from "../components/WorkoutPlanModal";
 import DietPlanModal from "../components/DietPlanModal";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { apiService } from "../services/api";
 import { useApi } from "../hooks/useApi";
 import { useToast } from "../hooks/use-toast";
-import { Button } from "../components/ui/button";
 import type { DietPlan, WorkoutPlan } from "@/services/types";
-import {
-  Dumbbell,
-  Utensils,
-  Plus,
-  BookOpen,
-  ArrowLeft,
-  Edit,
-  Trash2,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { BookOpen, Edit, Plus, Trash2 } from "lucide-react";
 
 const Health = () => {
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
@@ -42,7 +38,6 @@ const Health = () => {
   });
 
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   // API hooks for workout plans
@@ -86,13 +81,12 @@ const Health = () => {
 
   const createWorkoutNote = async () => {
     try {
-      const today = new Date().toISOString().split("T")[0];
-      const title = `Workout - ${today}`;
+      const title = `Workout — ${todayDateline()}`;
 
       // Create a new journal entry with workout tag using API
       const result = await createJournalEntryApi.execute({
         title,
-        content: "Start your workout journal entry here...",
+        content: "",
         tags: ["workout"],
       });
 
@@ -116,13 +110,12 @@ const Health = () => {
 
   const createDietNote = async () => {
     try {
-      const today = new Date().toISOString().split("T")[0];
-      const title = `Diet - ${today}`;
+      const title = `Food — ${todayDateline()}`;
 
       // Create a new journal entry with diet tag using API
       const result = await createJournalEntryApi.execute({
         title,
-        content: "Start your diet journal entry here...",
+        content: "",
         tags: ["diet"],
       });
 
@@ -332,637 +325,8 @@ const Health = () => {
     }
   }, [currentWorkoutPlan]);
 
-  if (currentWorkoutPlan) {
-    // Ensure backward compatibility for existing plans without weeklySchedule
-    const planWithSchedule = {
-      ...currentWorkoutPlan,
-      weeklySchedule: currentWorkoutPlan.weeklySchedule || {
-        sunday: [],
-        monday: [],
-        tuesday: [],
-        wednesday: [],
-        thursday: [],
-        friday: [],
-        saturday: [],
-      },
-    };
-
-    // Get today's day name for scrolling
-    const today = new Date()
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-    const todayIndex = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ].indexOf(today);
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => navigate("/health")}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-3xl font-bold text-white">
-              {planWithSchedule.name}
-            </h1>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="bg-gray-800/30 rounded-xl border border-gray-700/30 p-6">
-                <h2 className="text-2xl font-bold mb-4">Weekly Schedule</h2>
-                <div className="space-y-4">
-                  {(
-                    [
-                      "sunday",
-                      "monday",
-                      "tuesday",
-                      "wednesday",
-                      "thursday",
-                      "friday",
-                      "saturday",
-                    ] as const
-                  ).map((day) => {
-                    const dayExercises = planWithSchedule.weeklySchedule[day]
-                      .map((exerciseId) =>
-                        planWithSchedule.exercises.find(
-                          (ex) => ex.id === exerciseId
-                        )
-                      )
-                      .filter(Boolean);
-
-                    // Get today's day name
-                    const today = new Date()
-                      .toLocaleDateString("en-US", { weekday: "long" })
-                      .toLowerCase();
-                    const isToday = day === today;
-
-                    return (
-                      <div
-                        key={day}
-                        id={`workout-day-${day}`}
-                        className={`rounded-lg p-4 border transition-all duration-300 ${
-                          isToday
-                            ? "bg-gradient-to-br from-pink-500/20 to-red-500/20 border-pink-500/40 shadow-lg shadow-pink-500/10"
-                            : "bg-gray-700/30 border-gray-600/30"
-                        }`}
-                      >
-                        <div className="flex justify-between items-center mb-3">
-                          <div className="flex items-center gap-2">
-                            <h3
-                              className={`text-lg font-semibold capitalize ${
-                                isToday ? "text-pink-400" : "text-white"
-                              }`}
-                            >
-                              {day}
-                            </h3>
-                            {isToday && (
-                              <span className="px-2 py-1 text-xs bg-pink-500/20 text-pink-300 rounded-full border border-pink-500/30">
-                                Today
-                              </span>
-                            )}
-                          </div>
-                          <span
-                            className={`${
-                              isToday ? "text-pink-300" : "text-gray-400"
-                            }`}
-                          >
-                            {dayExercises.length}{" "}
-                            {dayExercises.length === 1
-                              ? "exercise"
-                              : "exercises"}
-                          </span>
-                        </div>
-                        {dayExercises.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {dayExercises.map((exercise) => (
-                              <div
-                                key={exercise!.id}
-                                className="bg-gray-600/30 rounded-lg p-3 border border-gray-500/30"
-                              >
-                                <div className="font-medium text-white mb-1">
-                                  {exercise!.name}
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                  {exercise!.sets} sets × {exercise!.reps} reps
-                                </div>
-                                {exercise!.notes && (
-                                  <div className="text-xs text-gray-500 mt-1">
-                                    {exercise!.notes}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-gray-400 text-center py-4">
-                            No exercises scheduled for this day
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-gray-800/30 rounded-xl border border-gray-700/30 p-6">
-                <h3 className="text-xl font-bold mb-4">Plan Details</h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-gray-400">Duration:</span>
-                    <p className="font-medium">
-                      {currentWorkoutPlan.duration} weeks
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Exercises:</span>
-                    <p className="font-medium">
-                      {currentWorkoutPlan.exercises.length}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Created:</span>
-                    <p className="font-medium">
-                      {new Date(
-                        currentWorkoutPlan.createdAt
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (currentDietPlan) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <Navbar />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => navigate("/health")}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-3xl font-bold text-white">
-              {currentDietPlan.name}
-            </h1>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="bg-gray-800/30 rounded-xl border border-gray-700/30 p-6">
-                <h2 className="text-2xl font-bold mb-4">Meals</h2>
-                <div className="space-y-6">
-                  {currentDietPlan.meals.map((meal, index) => (
-                    <div
-                      key={meal.id}
-                      className="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold">{meal.name}</h3>
-                          <span className="text-sm text-gray-400 capitalize">
-                            {meal.type}
-                          </span>
-                        </div>
-                        <span className="text-gray-400">#{index + 1}</span>
-                      </div>
-
-                      <div className="space-y-2">
-                        {meal.foods && meal.foods.length > 0
-                          ? meal.foods.map((food) => (
-                              <div
-                                key={food.id}
-                                className="flex justify-between items-center py-2 border-b border-gray-600/30 last:border-b-0"
-                              >
-                                <div>
-                                  <span className="font-medium">
-                                    {food.name}
-                                  </span>
-                                  <span className="text-gray-400 ml-2">
-                                    ({food.quantity})
-                                  </span>
-                                </div>
-                                <div className="text-right">
-                                  <span className="font-medium">
-                                    {food.calories} cal
-                                  </span>
-                                  {food.protein && (
-                                    <span className="text-gray-400 ml-2">
-                                      {food.protein}g protein
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))
-                          : null}
-                      </div>
-
-                      {meal.notes && (
-                        <div className="mt-4 pt-4 border-t border-gray-600/30">
-                          <span className="text-gray-400">Notes:</span>
-                          <p className="text-sm mt-1">{meal.notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-gray-800/30 rounded-xl border border-gray-700/30 p-6">
-                <h3 className="text-xl font-bold mb-4">Plan Details</h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-gray-400">Duration:</span>
-                    <p className="font-medium">
-                      {currentDietPlan.duration} weeks
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Meals:</span>
-                    <p className="font-medium">
-                      {currentDietPlan.meals.length}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Created:</span>
-                    <p className="font-medium">
-                      {new Date(currentDietPlan.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <Navbar />
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="flex bg-gray-800/50 rounded-lg p-1 border border-gray-700/30">
-            <button
-              onClick={() => setActiveTab("workout")}
-              className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
-                activeTab === "workout"
-                  ? "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-              }`}
-            >
-              <Dumbbell size={18} />
-              Workout Plans
-            </button>
-            <button
-              onClick={() => setActiveTab("diet")}
-              className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
-                activeTab === "diet"
-                  ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-              }`}
-            >
-              <Utensils size={18} />
-              Diet Plans
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        {activeTab === "workout" ? (
-          <div className="space-y-8">
-            {/* Workout Plans Header */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Workout Plans</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={createWorkoutNote}
-                  className="group relative px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-500/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center gap-2">
-                    <BookOpen size={16} />
-                    Today's Notes
-                  </div>
-                </button>
-                <button
-                  onClick={() => setIsWorkoutModalOpen(true)}
-                  className="group relative px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25 focus:outline-none focus:ring-4 focus:ring-red-500/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center gap-2">
-                    <Plus size={16} />
-                    Create Plan
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Workout Plans Grid */}
-            {getWorkoutPlansApi.loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-              </div>
-            ) : getWorkoutPlansApi.error ? (
-              <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-red-400 mb-2">
-                  Error loading workout plans
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  {getWorkoutPlansApi.error.message}
-                </p>
-                <Button
-                  onClick={loadWorkoutPlans}
-                  className="bg-gradient-to-r from-pink-600 to-rose-600"
-                >
-                  Try Again
-                </Button>
-              </div>
-            ) : workoutPlans.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <div className="w-24 h-24 bg-gradient-to-r from-red-500/20 to-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Dumbbell className="w-12 h-12 text-red-400" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4">
-                  No Workout Plans Yet
-                </h3>
-                <p className="text-gray-400 mb-8 max-w-md mx-auto text-center">
-                  Create your first workout plan to start your fitness journey.
-                  Plan your exercises, sets, and reps for the next month.
-                </p>
-                <button
-                  onClick={() => setIsWorkoutModalOpen(true)}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/25 focus:outline-none focus:ring-4 focus:ring-red-500/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center gap-2">
-                    <Plus size={24} />
-                    Create Your First Workout Plan
-                  </div>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {workoutPlans.map((plan) => {
-                  // Ensure backward compatibility for existing plans without weeklySchedule
-                  const planWithSchedule = {
-                    ...plan,
-                    weeklySchedule: plan.weeklySchedule || {
-                      sunday: [],
-                      monday: [],
-                      tuesday: [],
-                      wednesday: [],
-                      thursday: [],
-                      friday: [],
-                      saturday: [],
-                    },
-                  };
-
-                  // Calculate total scheduled exercises
-                  const totalScheduled = Object.values(
-                    planWithSchedule.weeklySchedule
-                  ).reduce((sum, dayExercises) => sum + dayExercises.length, 0);
-                  const daysWithExercises = Object.values(
-                    planWithSchedule.weeklySchedule
-                  ).filter((dayExercises) => dayExercises.length > 0).length;
-
-                  return (
-                    <motion.div
-                      key={plan.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-gray-800/30 rounded-xl border border-gray-700/30 overflow-hidden hover:border-gray-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/25"
-                    >
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                        <p className="text-gray-400 mb-4">{plan.description}</p>
-
-                        {/* Weekly Schedule Preview */}
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium text-gray-300 mb-2">
-                            Weekly Schedule
-                          </h4>
-                          <div className="grid grid-cols-7 gap-1">
-                            {(
-                              [
-                                "sun",
-                                "mon",
-                                "tue",
-                                "wed",
-                                "thu",
-                                "fri",
-                                "sat",
-                              ] as const
-                            ).map((day) => {
-                              const dayKey =
-                                day === "sun"
-                                  ? "sunday"
-                                  : day === "mon"
-                                  ? "monday"
-                                  : day === "tue"
-                                  ? "tuesday"
-                                  : day === "wed"
-                                  ? "wednesday"
-                                  : day === "thu"
-                                  ? "thursday"
-                                  : day === "fri"
-                                  ? "friday"
-                                  : "saturday";
-                              const exerciseCount =
-                                planWithSchedule.weeklySchedule[dayKey].length;
-
-                              return (
-                                <div
-                                  key={day}
-                                  className={`text-center py-1 rounded text-xs font-medium ${
-                                    exerciseCount > 0
-                                      ? "bg-gradient-to-r from-red-600/20 to-pink-600/20 text-red-400 border border-red-500/30"
-                                      : "bg-gray-700/30 text-gray-500"
-                                  }`}
-                                >
-                                  <div className="text-xs">
-                                    {day.toUpperCase()}
-                                  </div>
-                                  <div className="text-xs">{exerciseCount}</div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center text-sm text-gray-400">
-                          <span>{plan.exercises.length} exercises</span>
-                          <span>{daysWithExercises} active days</span>
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                          <Link
-                            to={`/health/workout/${plan.id}`}
-                            className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg text-center font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
-                          >
-                            View Plan
-                          </Link>
-                          <button
-                            onClick={() => handleEditWorkoutPlan(plan)}
-                            className="px-4 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg font-medium transition-all duration-300 hover:bg-gray-600/70 hover:border-gray-500/70"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteClick(plan.id, plan.name)
-                            }
-                            className="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-lg font-medium transition-all duration-300 hover:bg-red-600/30 hover:border-red-500/50"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Diet Plans Header */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Diet Plans</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={createDietNote}
-                  className="group relative px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-4 focus:ring-blue-500/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center gap-2">
-                    <BookOpen size={16} />
-                    Today's Notes
-                  </div>
-                </button>
-                <button
-                  onClick={() => setIsDietModalOpen(true)}
-                  className="group relative px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 focus:outline-none focus:ring-4 focus:ring-green-500/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center gap-2">
-                    <Plus size={16} />
-                    Create Plan
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Diet Plans Grid */}
-            {getDietPlansApi.loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-              </div>
-            ) : getDietPlansApi.error ? (
-              <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-red-400 mb-2">
-                  Error loading diet plans
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  {getDietPlansApi.error.message}
-                </p>
-                <Button
-                  onClick={loadDietPlans}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600"
-                >
-                  Try Again
-                </Button>
-              </div>
-            ) : dietPlans.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <div className="w-24 h-24 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Utensils className="w-12 h-12 text-green-400" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4">No Diet Plans Yet</h3>
-                <p className="text-gray-400 mb-8 max-w-md mx-auto text-center">
-                  Create your first diet plan to start your nutrition journey.
-                  Plan your meals, calories, and macros for the next month.
-                </p>
-                <button
-                  onClick={() => setIsDietModalOpen(true)}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25 focus:outline-none focus:ring-4 focus:ring-green-500/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center gap-2">
-                    <Plus size={24} />
-                    Create Your First Diet Plan
-                  </div>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {dietPlans.map((plan) => (
-                  <motion.div
-                    key={plan.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gray-800/30 rounded-xl border border-gray-700/30 overflow-hidden hover:border-gray-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/25"
-                  >
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                      <p className="text-gray-400 mb-4">{plan.description}</p>
-                      <div className="flex justify-between items-center text-sm text-gray-400">
-                        <span>{plan.meals.length} meals</span>
-                        <span>{plan.duration} weeks</span>
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                        <Link
-                          to={`/health/diet/${plan.id}`}
-                          className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg text-center font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25"
-                        >
-                          View Plan
-                        </Link>
-                        <button
-                          onClick={() => handleEditDietPlan(plan)}
-                          className="px-4 py-2 bg-gray-600/50 border border-gray-500/50 rounded-lg font-medium transition-all duration-300 hover:bg-gray-600/70 hover:border-gray-500/70"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteDietPlanClick(plan.id)}
-                          className="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-lg font-medium transition-all duration-300 hover:bg-red-600/30 hover:border-red-500/50"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Modals */}
+  const planModals = (
+    <>
       <WorkoutPlanModal
         isOpen={isWorkoutModalOpen}
         onClose={() => {
@@ -972,7 +336,6 @@ const Health = () => {
         onSave={handleSaveWorkoutPlan}
         plan={editingWorkoutPlan}
       />
-
       <DietPlanModal
         isOpen={isDietModalOpen}
         onClose={() => {
@@ -982,28 +345,460 @@ const Health = () => {
         onSave={handleSaveDietPlan}
         plan={editingDietPlan}
       />
+    </>
+  );
 
-      {/* Confirmation Dialog */}
+  const days = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ] as const;
+  const todayName = new Date()
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
+
+  const emptySchedule = {
+    sunday: [],
+    monday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],
+    saturday: [],
+  };
+
+  const detailsList = (rows: { label: string; value: React.ReactNode }[]) => (
+    <dl className="border-t border-ink font-ledger text-[13px]">
+      {rows.map((row) => (
+        <div
+          key={row.label}
+          className="flex items-baseline justify-between border-b border-paper-rule py-2.5"
+        >
+          <dt className="text-ink-soft">{row.label}</dt>
+          <dd className="tabular-nums">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+
+  if (currentWorkoutPlan) {
+    // Older plans may not have a weekly schedule yet.
+    const plan = {
+      ...currentWorkoutPlan,
+      weeklySchedule: currentWorkoutPlan.weeklySchedule || emptySchedule,
+    };
+
+    return (
+      <PaperPage
+        number="07"
+        title={plan.name}
+        kicker="07 — Health · Workout plan"
+        subtitle={plan.description || undefined}
+        back={{ to: "/health", label: "All plans" }}
+        actions={
+          <PaperButton tone="quiet" onClick={() => handleEditWorkoutPlan(currentWorkoutPlan)}>
+            <Edit size={16} />
+            Edit plan
+          </PaperButton>
+        }
+      >
+        <div className="mt-12 grid gap-12 lg:grid-cols-12">
+          <section aria-label="Weekly schedule" className="lg:col-span-8">
+            <ol className="border-t border-ink">
+              {days.map((day) => {
+                const exercises = plan.weeklySchedule[day]
+                  .map((exerciseId) => plan.exercises.find((ex) => ex.id === exerciseId))
+                  .filter(Boolean);
+                const isToday = day === todayName;
+                return (
+                  <li
+                    key={day}
+                    id={`workout-day-${day}`}
+                    className={`border-b border-paper-rule py-5 ${
+                      isToday ? "-mx-4 rounded-[3px] bg-[#F9F7EF] px-4 shadow-[0_1px_0_#d3cdb7]" : ""
+                    }`}
+                  >
+                    <div className="flex items-baseline justify-between gap-4">
+                      <h2 className="font-display text-2xl capitalize">
+                        {day}
+                        {isToday && (
+                          <span className="ml-3 font-ledger text-[10px] uppercase tracking-[0.16em] text-clay">
+                            Today
+                          </span>
+                        )}
+                      </h2>
+                      <span className="font-ledger text-[11px] text-ink-faint">
+                        {exercises.length
+                          ? `${exercises.length} ${exercises.length === 1 ? "exercise" : "exercises"}`
+                          : "Rest"}
+                      </span>
+                    </div>
+                    {exercises.length > 0 && (
+                      <ul className="mt-3 space-y-2">
+                        {exercises.map((exercise) => (
+                          <li key={exercise!.id}>
+                            <div className="flex items-baseline gap-3">
+                              <span className="text-[15px]">{exercise!.name}</span>
+                              <span className="paper-leader" />
+                              <span className="font-ledger text-[13px] tabular-nums">
+                                {exercise!.sets} × {exercise!.reps}
+                              </span>
+                            </div>
+                            {exercise!.notes && (
+                              <p className="mt-0.5 text-sm text-ink-faint">{exercise!.notes}</p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          <aside className="lg:col-span-4">
+            <p className={`mb-4 ${paperKicker}`}>About this plan</p>
+            {detailsList([
+              { label: "Length", value: `${currentWorkoutPlan.duration} weeks` },
+              { label: "Exercises", value: currentWorkoutPlan.exercises.length },
+              {
+                label: "Training days",
+                value: days.filter((d) => plan.weeklySchedule[d].length > 0).length,
+              },
+              {
+                label: "Started",
+                value: new Date(currentWorkoutPlan.createdAt).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                }),
+              },
+            ])}
+            <button
+              onClick={createWorkoutNote}
+              className="paper-focus ink-link mt-6 text-sm text-ink-soft hover:text-ink"
+            >
+              Write today's workout note
+            </button>
+          </aside>
+        </div>
+
+        {planModals}
+      </PaperPage>
+    );
+  }
+
+  if (currentDietPlan) {
+    const dayCalories = currentDietPlan.meals.reduce(
+      (sum, meal) => sum + (meal.foods || []).reduce((s, f) => s + (f.calories || 0), 0),
+      0
+    );
+
+    return (
+      <PaperPage
+        number="07"
+        title={currentDietPlan.name}
+        kicker="07 — Health · Meal plan"
+        subtitle={currentDietPlan.description || undefined}
+        back={{ to: "/health", label: "All plans" }}
+        actions={
+          <PaperButton tone="quiet" onClick={() => handleEditDietPlan(currentDietPlan)}>
+            <Edit size={16} />
+            Edit plan
+          </PaperButton>
+        }
+      >
+        <div className="mt-12 grid gap-12 lg:grid-cols-12">
+          <section aria-label="Meals" className="space-y-10 lg:col-span-8">
+            {currentDietPlan.meals.map((meal) => {
+              const calories = (meal.foods || []).reduce((s, f) => s + (f.calories || 0), 0);
+              return (
+                <article key={meal.id} className="border-t border-ink pt-4">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <div>
+                      <p className={paperKicker}>{meal.type}</p>
+                      <h2 className="mt-1 font-display text-3xl">{meal.name}</h2>
+                    </div>
+                    {calories > 0 && (
+                      <span className="font-ledger text-sm tabular-nums">{calories} kcal</span>
+                    )}
+                  </div>
+                  {meal.foods && meal.foods.length > 0 && (
+                    <ul className="mt-4 space-y-2">
+                      {meal.foods.map((food) => (
+                        <li key={food.id} className="flex items-baseline gap-3">
+                          <span className="text-[15px]">
+                            {food.name}
+                            <span className="ml-2 text-sm text-ink-faint">{food.quantity}</span>
+                          </span>
+                          <span className="paper-leader" />
+                          <span className="font-ledger text-[13px] tabular-nums">
+                            {food.calories} kcal
+                            {food.protein ? (
+                              <span className="ml-2 text-ink-faint">{food.protein}g protein</span>
+                            ) : null}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {meal.notes && (
+                    <p className="mt-4 font-display text-lg italic text-ink-soft">{meal.notes}</p>
+                  )}
+                </article>
+              );
+            })}
+          </section>
+
+          <aside className="lg:col-span-4">
+            <p className={`mb-4 ${paperKicker}`}>About this plan</p>
+            {detailsList([
+              { label: "Length", value: `${currentDietPlan.duration} weeks` },
+              { label: "Meals a day", value: currentDietPlan.meals.length },
+              ...(dayCalories > 0
+                ? [{ label: "Calories a day", value: `${dayCalories} kcal` }]
+                : []),
+              {
+                label: "Started",
+                value: new Date(currentDietPlan.createdAt).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                }),
+              },
+            ])}
+            <button
+              onClick={createDietNote}
+              className="paper-focus ink-link mt-6 text-sm text-ink-soft hover:text-ink"
+            >
+              Write today's food note
+            </button>
+          </aside>
+        </div>
+
+        {planModals}
+      </PaperPage>
+    );
+  }
+
+  const isWorkout = activeTab === "workout";
+  const listApi = isWorkout ? getWorkoutPlansApi : getDietPlansApi;
+  const plansCount = isWorkout ? workoutPlans.length : dietPlans.length;
+
+  return (
+    <PaperPage number="07" title="Health" subtitle="Plans for moving and eating.">
+      <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
+        <div role="tablist" aria-label="Plan type" className="flex gap-8">
+          {(
+            [
+              { id: "workout", label: "Workouts", count: workoutPlans.length },
+              { id: "diet", label: "Meals", count: dietPlans.length },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`paper-focus relative pb-1 font-display text-3xl ${
+                activeTab === tab.id
+                  ? "text-ink after:absolute after:inset-x-0 after:-bottom-px after:h-[2px] after:bg-clay"
+                  : "text-ink-faint hover:text-ink"
+              }`}
+            >
+              {tab.label}
+              <span className="ml-2 font-ledger text-xs text-ink-faint">{tab.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <PaperButton tone="quiet" onClick={isWorkout ? createWorkoutNote : createDietNote}>
+            <BookOpen size={16} />
+            Today's note
+          </PaperButton>
+          <PaperButton
+            onClick={() => (isWorkout ? setIsWorkoutModalOpen(true) : setIsDietModalOpen(true))}
+          >
+            <Plus size={16} />
+            New plan
+          </PaperButton>
+        </div>
+      </div>
+
+      {listApi.loading ? (
+        <PaperLoading label="Opening your plans…" />
+      ) : listApi.error ? (
+        <PaperErrorState
+          message={listApi.error.message}
+          onRetry={isWorkout ? loadWorkoutPlans : loadDietPlans}
+        />
+      ) : plansCount === 0 ? (
+        <PaperEmpty
+          title={isWorkout ? "No workout plans yet." : "No meal plans yet."}
+          body={
+            isWorkout
+              ? "Write down the exercises, sets and reps, and which days they go on."
+              : "Write down your meals, what's in them and roughly how much."
+          }
+          action={
+            <PaperButton
+              onClick={() => (isWorkout ? setIsWorkoutModalOpen(true) : setIsDietModalOpen(true))}
+            >
+              <Plus size={16} />
+              Make your first plan
+            </PaperButton>
+          }
+        />
+      ) : (
+        <ul className="mt-8 grid gap-6 md:grid-cols-2">
+          {isWorkout
+            ? workoutPlans.map((plan) => {
+                const schedule = plan.weeklySchedule || emptySchedule;
+                const activeDays = days.filter((d) => schedule[d].length > 0).length;
+                return (
+                  <li key={plan.id} className={`flex flex-col ${paperSheet} p-6`}>
+                    <h3 className="font-display text-3xl leading-tight">
+                      <Link
+                        to={`/health/workout/${plan.id}`}
+                        className="paper-focus hover:text-clay"
+                      >
+                        {plan.name}
+                      </Link>
+                    </h3>
+                    {plan.description && (
+                      <p className="mt-2 line-clamp-2 text-ink-soft">{plan.description}</p>
+                    )}
+                    <div className="mt-5 grid grid-cols-7 gap-1.5" aria-label="Week at a glance">
+                      {days.map((day) => {
+                        const count = schedule[day].length;
+                        return (
+                          <div key={day} className="text-center">
+                            <p
+                              className={`font-ledger text-[10px] uppercase ${
+                                day === todayName ? "text-clay" : "text-ink-faint"
+                              }`}
+                            >
+                              {day.slice(0, 2)}
+                            </p>
+                            <p
+                              className={`mt-1 grid h-7 place-items-center rounded-[2px] font-ledger text-xs ${
+                                count ? "bg-ink text-paper" : "border border-ink/15 text-ink-faint"
+                              }`}
+                              title={`${day}: ${count || "rest"}`}
+                            >
+                              {count || "·"}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-auto flex items-center justify-between gap-4 pt-6">
+                      <p className="font-ledger text-[11px] text-ink-faint">
+                        {plan.exercises.length} exercises · {activeDays} days
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditWorkoutPlan(plan)}
+                          className={paperIconButton}
+                          aria-label={`Edit ${plan.name}`}
+                        >
+                          <Edit size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(plan.id, plan.name)}
+                          className={`${paperIconButton} hover:text-clay`}
+                          aria-label={`Delete ${plan.name}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                        <Link
+                          to={`/health/workout/${plan.id}`}
+                          className="paper-focus ink-link ml-2 text-sm"
+                        >
+                          Open
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })
+            : dietPlans.map((plan) => {
+                const calories = plan.meals.reduce(
+                  (sum, meal) =>
+                    sum + (meal.foods || []).reduce((s, f) => s + (f.calories || 0), 0),
+                  0
+                );
+                return (
+                  <li key={plan.id} className={`flex flex-col ${paperSheet} p-6`}>
+                    <h3 className="font-display text-3xl leading-tight">
+                      <Link to={`/health/diet/${plan.id}`} className="paper-focus hover:text-clay">
+                        {plan.name}
+                      </Link>
+                    </h3>
+                    {plan.description && (
+                      <p className="mt-2 line-clamp-2 text-ink-soft">{plan.description}</p>
+                    )}
+                    <ul className="mt-5 space-y-1.5">
+                      {plan.meals.slice(0, 4).map((meal) => (
+                        <li key={meal.id} className="flex items-baseline gap-3 text-[15px]">
+                          <span className="font-ledger text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+                            {meal.type}
+                          </span>
+                          <span className="truncate">{meal.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-auto flex items-center justify-between gap-4 pt-6">
+                      <p className="font-ledger text-[11px] text-ink-faint">
+                        {plan.meals.length} meals
+                        {calories > 0 ? ` · ${calories} kcal` : ""} · {plan.duration} wk
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditDietPlan(plan)}
+                          className={paperIconButton}
+                          aria-label={`Edit ${plan.name}`}
+                        >
+                          <Edit size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDietPlanClick(plan.id)}
+                          className={`${paperIconButton} hover:text-clay`}
+                          aria-label={`Delete ${plan.name}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                        <Link to={`/health/diet/${plan.id}`} className="paper-focus ink-link ml-2 text-sm">
+                          Open
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+        </ul>
+      )}
+
+      {planModals}
+
       <ConfirmationDialog
         isOpen={deleteConfirmation.isOpen}
         onClose={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            planId: null,
-            planName: "",
-            type: "workout",
-          })
+          setDeleteConfirmation({ isOpen: false, planId: null, planName: "", type: "workout" })
         }
         onConfirm={handleConfirmDelete}
-        title={`Delete ${
-          deleteConfirmation.type === "workout" ? "Workout" : "Diet"
-        } Plan`}
-        message={`Are you sure you want to delete "${deleteConfirmation.planName}"? This action cannot be undone.`}
-        confirmText="Delete Plan"
-        cancelText="Cancel"
+        title={`Delete this ${deleteConfirmation.type === "workout" ? "workout" : "meal"} plan?`}
+        message={`“${deleteConfirmation.planName}” will be removed for good.`}
+        confirmText="Delete"
+        cancelText="Keep it"
         type="danger"
       />
-    </div>
+    </PaperPage>
   );
 };
 

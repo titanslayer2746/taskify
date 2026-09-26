@@ -392,9 +392,6 @@ class TokenRefreshService {
 // Create and export the token refresh service instance
 export const tokenRefreshService = new TokenRefreshService();
 
-// Export the class for testing
-export { TokenRefreshService };
-
 // Utility functions for token refresh
 export const tokenRefreshUtils = {
   // Initialize token refresh service
@@ -449,68 +446,5 @@ export const tokenRefreshUtils = {
   },
 };
 
-// Enhanced auto-refresh interceptor for HTTP client
-export const createTokenRefreshInterceptor = () => {
-  return async (config: RequestInit): Promise<RequestInit> => {
-    // Skip refresh for refresh token requests to avoid infinite loops
-    if (config.body && typeof config.body === "string") {
-      try {
-        const body = JSON.parse(config.body);
-        if (body.refreshToken) {
-          return config;
-        }
-      } catch {
-        // Ignore parsing errors
-      }
-    }
-
-    // Check if token needs refresh
-    if (tokenRefreshService.needsRefresh()) {
-      const refreshed = await tokenRefreshService.refreshToken();
-      if (!refreshed) {
-        throw new Error("Token refresh failed");
-      }
-    }
-
-    return config;
-  };
-};
-
-// Background refresh interceptor for when app is in background
-export const createBackgroundRefreshInterceptor = () => {
-  return async (config: RequestInit): Promise<RequestInit> => {
-    // Only refresh in background if explicitly configured
-    if (!tokenRefreshService.getConfig().backgroundRefresh) {
-      return config;
-    }
-
-    // Check if app is in background and token needs refresh
-    if (document.hidden && tokenRefreshService.needsRefresh()) {
-      await tokenRefreshService.refreshToken();
-    }
-
-    return config;
-  };
-};
-
-// Network-aware refresh interceptor
-export const createNetworkAwareRefreshInterceptor = () => {
-  return async (config: RequestInit): Promise<RequestInit> => {
-    const networkStatus = tokenRefreshService.getNetworkStatus();
-
-    // If network was recently restored, check for token refresh
-    if (networkStatus.isOnline && networkStatus.wasOffline) {
-      const timeSinceReconnection = Date.now() - networkStatus.lastOnlineTime;
-
-      // Check within 5 seconds of reconnection
-      if (timeSinceReconnection < 5000 && tokenRefreshService.needsRefresh()) {
-        await tokenRefreshService.refreshToken();
-      }
-    }
-
-    return config;
-  };
-};
-
 // Export types
-export type { TokenRefreshConfig, NetworkStatus };
+export type { TokenRefreshConfig };

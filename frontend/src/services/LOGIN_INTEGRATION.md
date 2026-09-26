@@ -102,34 +102,16 @@ const App = () => (
 );
 ```
 
-### 4. Navbar Component (`frontend/src/components/Navbar.tsx`)
+### 4. Navbar Component (`frontend/src/components/paper/PaperNavbar.tsx`)
 
-Added user menu with logout functionality:
+The signed-in navbar shows the user's first name and a "Sign out" button that calls `logout()` from the auth context:
 
 ```typescript
-// User Menu with Logout
-{
-  isAuthenticated && (
-    <div className="hidden md:flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2">
-            <User size={18} />
-            <span>{user?.name || "User"}</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <LogoutButton variant="ghost" showDropdown={false} />
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-}
+const { user, logout } = useAuth();
+
+<button onClick={signOut} disabled={signingOut}>
+  {signingOut ? "Signing out…" : "Sign out"}
+</button>
 ```
 
 ## Error Handling

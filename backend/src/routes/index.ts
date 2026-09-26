@@ -7,6 +7,7 @@ import financeRoutes from "./finance";
 import workoutRoutes from "./workout";
 import mealRoutes from "./meal";
 import sleepRoutes from "./sleep";
+import projectRoutes from "./project";
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.get("/", (req, res) => {
       workout: "/api/workout",
       meal: "/api/meal",
       sleep: "/api/sleep",
+      projects: "/api/projects",
     },
   });
 });
@@ -62,5 +64,8 @@ router.use("/meal", mealRoutes);
 
 // Sleep routes
 router.use("/sleep", sleepRoutes);
+
+// Project routes
+router.use("/projects", projectRoutes);
 
 export default router;
